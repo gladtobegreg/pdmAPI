@@ -1,0 +1,56 @@
+{
+  "users": [
+    {
+      "username": "user1",
+      "password": "password1",
+      "productSetIndex": 0
+    },
+    {
+      "username": "user2",
+      "password": "password2",
+      "productSetIndex": 1
+    }
+  ],
+  "products": [
+    [
+      {
+        "id": "654000000011",
+        "name": "Test Item 3",
+        "price": "18.99",
+        "skuNum": "654000000011",
+        "taxable": "true",
+        "fullPrice": "20.68",
+        "category": "otc"
+      },
+      {
+        "id": "654000000004",
+        "name": "Test Item 4",
+        "price": "15.99",
+        "skuNum": "654000000004",
+        "taxable": "false",
+        "fullPrice": "15.99",
+        "category": "otc"
+      }
+    ],
+    [
+      {
+        "id": "654000000018",
+        "name": "Test Item 1",
+        "price": "31.99",
+        "skuNum": "654000000018",
+        "taxable": "true",
+        "fullPrice": "34.83",
+        "category": "otc"
+      },
+      {
+        "id": "654000000019",
+        "name": "Test Item 2",
+        "price": "21.49",
+        "skuNum": "654000000019",
+        "taxable": "false",
+        "fullPrice": "21.49",
+        "category": "otc"
+      }
+    ]
+  ]
+}
