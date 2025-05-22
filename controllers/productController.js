@@ -69,7 +69,7 @@ async function getAllProducts(req, res) {
         await Promise.all(promises);
         readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
         // res.status(200).send(readProductsJson.products[userProductIndex]);
-        res.status(200).send({
+        res.status(200).json({
             "products": readProductsJson.products[userProductIndex],
             "categories": readProductsJson.categories[userProductIndex]
         });
