@@ -70,8 +70,8 @@ async function getAllProducts(req, res) {
         readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
         // res.status(200).send(readProductsJson.products[userProductIndex]);
         res.status(200).json({
-            "products": readProductsJson.products[userProductIndex],
-            "categories": readProductsJson.categories[userProductIndex]
+            "categories": readProductsJson.categories[userProductIndex],
+            "products": readProductsJson.products[userProductIndex]
         });
         
 
