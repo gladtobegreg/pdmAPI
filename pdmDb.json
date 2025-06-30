@@ -18,7 +18,7 @@
   ],
   "categories": [
     ["otc", "food", "user0TEST"],
-    ["otc", "food", "tester", "healthFirst", "united", "ebt", "gsa", "usa", "whatever"],
+    ["otc", "food", "hfirst", "united", "ebt"],
     ["otc", "food", "user2TEST"]
   ],
   "products": [
@@ -30,7 +30,7 @@
         "skuNum": "456000000018",
         "taxable": "false",
         "fullPrice": "31.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000014",
@@ -39,7 +39,7 @@
         "skuNum": "456000000014",
         "taxable": "true",
         "fullPrice": "30.47",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000015",
@@ -48,7 +48,7 @@
         "skuNum": "456000000015",
         "taxable": "true",
         "fullPrice": "30.47",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000016",
@@ -57,7 +57,7 @@
         "skuNum": "456000000016",
         "taxable": "false",
         "fullPrice": "29.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000012",
@@ -66,7 +66,7 @@
         "skuNum": "456000000012",
         "taxable": "true",
         "fullPrice": "27.75",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000017",
@@ -75,7 +75,7 @@
         "skuNum": "456000000017",
         "taxable": "false",
         "fullPrice": "24.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000010",
@@ -84,7 +84,7 @@
         "skuNum": "456000000010",
         "taxable": "false",
         "fullPrice": "22.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000019",
@@ -93,7 +93,7 @@
         "skuNum": "456000000019",
         "taxable": "false",
         "fullPrice": "21.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000011",
@@ -102,7 +102,7 @@
         "skuNum": "456000000011",
         "taxable": "true",
         "fullPrice": "20.68",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000013",
@@ -111,7 +111,7 @@
         "skuNum": "456000000013",
         "taxable": "false",
         "fullPrice": "19.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000005",
@@ -120,7 +120,7 @@
         "skuNum": "456000000005",
         "taxable": "false",
         "fullPrice": "17.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000020",
@@ -129,7 +129,7 @@
         "skuNum": "456000000020",
         "taxable": "false",
         "fullPrice": "16.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000004",
@@ -138,7 +138,7 @@
         "skuNum": "456000000004",
         "taxable": "false",
         "fullPrice": "15.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000009",
@@ -147,7 +147,7 @@
         "skuNum": "456000000009",
         "taxable": "false",
         "fullPrice": "14.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000007",
@@ -156,7 +156,7 @@
         "skuNum": "456000000007",
         "taxable": "false",
         "fullPrice": "13.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000006",
@@ -165,7 +165,7 @@
         "skuNum": "456000000006",
         "taxable": "true",
         "fullPrice": "13.05",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000001",
@@ -174,7 +174,7 @@
         "skuNum": "456000000001",
         "taxable": "false",
         "fullPrice": "12.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000008",
@@ -183,7 +183,7 @@
         "skuNum": "456000000008",
         "taxable": "true",
         "fullPrice": "11.42",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000002",
@@ -192,7 +192,7 @@
         "skuNum": "456000000002",
         "taxable": "false",
         "fullPrice": "9.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000003",
@@ -201,7 +201,7 @@
         "skuNum": "456000000003",
         "taxable": "true",
         "fullPrice": "9.24",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000021",
@@ -210,7 +210,7 @@
         "skuNum": "456000000021",
         "taxable": "false",
         "fullPrice": "6.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000022",
@@ -219,7 +219,7 @@
         "skuNum": "456000000022",
         "taxable": "false",
         "fullPrice": "4.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000023",
@@ -228,7 +228,7 @@
         "skuNum": "456000000023",
         "taxable": "false",
         "fullPrice": "2.29",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000024",
@@ -237,7 +237,7 @@
         "skuNum": "456000000024",
         "taxable": "false",
         "fullPrice": "0.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000025",
@@ -246,7 +246,7 @@
         "skuNum": "456000000025",
         "taxable": "false",
         "fullPrice": "0.30",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       }
     ],
     [
@@ -257,7 +257,7 @@
         "skuNum": "654000000018",
         "taxable": "true",
         "fullPrice": "34.83",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "ebt"]
       },
       {
         "id": "654000000019",
@@ -266,7 +266,7 @@
         "skuNum": "654000000019",
         "taxable": "false",
         "fullPrice": "21.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "hfirst", "united"]
       },
       {
         "id": "654000000011",
@@ -275,7 +275,7 @@
         "skuNum": "654000000011",
         "taxable": "true",
         "fullPrice": "20.68",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "united", "ebt"]
       },
       {
         "id": "654000000004",
@@ -284,7 +284,7 @@
         "skuNum": "654000000004",
         "taxable": "false",
         "fullPrice": "15.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "654000000001",
@@ -293,7 +293,7 @@
         "skuNum": "654000000001",
         "taxable": "false",
         "fullPrice": "13.05",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "654000000002",
@@ -302,7 +302,7 @@
         "skuNum": "654000000002",
         "taxable": "true",
         "fullPrice": "10.88",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "ebt"]
       },
       {
         "id": "654000000023",
@@ -311,7 +311,7 @@
         "skuNum": "654000000023",
         "taxable": "false",
         "fullPrice": "2.29",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "654000000024",
@@ -320,7 +320,7 @@
         "skuNum": "654000000024",
         "taxable": "false",
         "fullPrice": "0.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united"]
       },
       {
         "id": "654000000025",
@@ -329,7 +329,7 @@
         "skuNum": "654000000025",
         "taxable": "false",
         "fullPrice": "0.30",
-        "category": ["otc", "test"]
+        "category": ["ebt"]
       }
     ],
     [
@@ -340,7 +340,7 @@
         "skuNum": "456000000018",
         "taxable": "false",
         "fullPrice": "31.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000014",
@@ -349,7 +349,7 @@
         "skuNum": "456000000014",
         "taxable": "true",
         "fullPrice": "30.47",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000015",
@@ -358,7 +358,7 @@
         "skuNum": "456000000015",
         "taxable": "true",
         "fullPrice": "30.47",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000016",
@@ -367,7 +367,7 @@
         "skuNum": "456000000016",
         "taxable": "false",
         "fullPrice": "29.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000012",
@@ -376,7 +376,7 @@
         "skuNum": "456000000012",
         "taxable": "true",
         "fullPrice": "27.75",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000017",
@@ -385,7 +385,7 @@
         "skuNum": "456000000017",
         "taxable": "false",
         "fullPrice": "24.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000010",
@@ -394,7 +394,7 @@
         "skuNum": "456000000010",
         "taxable": "false",
         "fullPrice": "22.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000019",
@@ -403,7 +403,7 @@
         "skuNum": "456000000019",
         "taxable": "false",
         "fullPrice": "21.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000011",
@@ -412,7 +412,7 @@
         "skuNum": "456000000011",
         "taxable": "true",
         "fullPrice": "20.68",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000013",
@@ -421,7 +421,7 @@
         "skuNum": "456000000013",
         "taxable": "false",
         "fullPrice": "19.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000005",
@@ -430,7 +430,7 @@
         "skuNum": "456000000005",
         "taxable": "false",
         "fullPrice": "17.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000020",
@@ -439,7 +439,7 @@
         "skuNum": "456000000020",
         "taxable": "false",
         "fullPrice": "16.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000004",
@@ -448,7 +448,7 @@
         "skuNum": "456000000004",
         "taxable": "false",
         "fullPrice": "15.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000009",
@@ -457,7 +457,7 @@
         "skuNum": "456000000009",
         "taxable": "false",
         "fullPrice": "14.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000007",
@@ -466,7 +466,7 @@
         "skuNum": "456000000007",
         "taxable": "false",
         "fullPrice": "13.49",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000006",
@@ -475,7 +475,7 @@
         "skuNum": "456000000006",
         "taxable": "true",
         "fullPrice": "13.05",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000001",
@@ -484,7 +484,7 @@
         "skuNum": "456000000001",
         "taxable": "false",
         "fullPrice": "12.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000008",
@@ -493,7 +493,7 @@
         "skuNum": "456000000008",
         "taxable": "true",
         "fullPrice": "11.42",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000002",
@@ -502,7 +502,7 @@
         "skuNum": "456000000002",
         "taxable": "false",
         "fullPrice": "9.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000003",
@@ -511,7 +511,7 @@
         "skuNum": "456000000003",
         "taxable": "true",
         "fullPrice": "9.24",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000021",
@@ -520,7 +520,7 @@
         "skuNum": "456000000021",
         "taxable": "false",
         "fullPrice": "6.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000022",
@@ -529,7 +529,7 @@
         "skuNum": "456000000022",
         "taxable": "false",
         "fullPrice": "4.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000023",
@@ -538,7 +538,7 @@
         "skuNum": "456000000023",
         "taxable": "false",
         "fullPrice": "2.29",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000024",
@@ -547,7 +547,7 @@
         "skuNum": "456000000024",
         "taxable": "false",
         "fullPrice": "0.99",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       },
       {
         "id": "456000000025",
@@ -556,7 +556,7 @@
         "skuNum": "456000000025",
         "taxable": "false",
         "fullPrice": "0.30",
-        "category": ["otc", "test"]
+        "category": ["otc", "food", "hfirst", "united", "ebt"]
       }
     ]
   ]
