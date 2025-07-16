@@ -27,3 +27,8 @@ app.post('/api/login', productController.getAccess); // Includes data sent as ob
 app.post('/api/products/addProduct', productController.createProduct); // Includes data sent as object
 app.patch('/api/products/updateProduct', productController.updateProduct); // Includes data sent as object
 app.delete('/api/products/deleteProduct', productController.deleteProduct); // Includes data sent as query
+
+// NEW app routes
+app.post('/api/categories/addCategory', productController.createCategory);
+app.patch('/api/categories/updateCategory', productController.updateCategory);
+app.delete('/api/categories/deleteCategory', productController.deleteCategory);

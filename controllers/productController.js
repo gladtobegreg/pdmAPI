@@ -211,82 +211,95 @@ function getRandomProducts (req, res) {
 // New item to add to database, received in req.body
 async function createProduct(req, res) {
 
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+	// Get user and relevant user index
+	const user = readProductsJson.users.find(user => user.username === req.query.username);
+	const userDataIndex = user.productSetIndex;
 
-    try {
+	// Check for valid query data
+	if (!req.query.id) {
+		throw new Error("Request is missing valid query data");
+	}
 
-        // Check for valid query
-        if (!req.query.id) {
-            throw new Error("Request is missing an id value in query");
-        }
+	// Check database for preexisting product with same id in database
+	const fetchedProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+	if (fetchedProduct) return res.status(401).send(`Product with that id is already in the list: ${JSON.stringify(fetchedProduct, null, 2)}`);
 
-        // Find product in database and handle not found
-        const fetchedProduct = readProductsJson.products[userProductIndex].find(product => product.id == req.query.id);
-        if (fetchedProduct) return res.status(401).send(`Product with that id is already in the list: ${JSON.stringify(fetchedProduct, null, 2)}`);
+	try {
 
-        // Push product to database and request barcode from api
-        readProductsJson.products[userProductIndex].push(req.body);
-        const barcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
-        const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
+	    // Push product to database and request barcode from api
+	    readProductsJson.products[userProductIndex].push(req.body);
+	    const barcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
+	    const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
-        // Check database for existing barcode image, fetch if missing
-        try {
-            await fs.promises.access(barcodeImagePath, fs.constants.F_OK);
-        } catch (err) {
+	    // Fetch barcode from api, buffer barcode, and save
+	    try {
+	    	await fs.promises.access(barcodeImagePath, fs.constants.F_OK);
+	    } catch (err) {
             const response = await fetch(`${barcodeApiUrl}${req.body.id}`);
             if (!response.ok) throw new Error('Barcode API response was bad');
             const imageBuffer = await response.arrayBuffer();
             await fs.promises.writeFile(barcodeImagePath, Buffer.from(imageBuffer));
-        }
+	    }
 
-        // Sort products, submit to database, and send response
+	    // Sort products, submit to database, and send response
         readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
         fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
         return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
 
-    } catch (err) {
-        console.error(err);
-        return res.status(401).send(`Error was thrown: ${err}`);
-    }
+	} catch (err) {
+		console.error(err);
+		return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
+	}
 }
 
-// Update existing item selected by id and data through req.body
+// Update existing item selected by req.query.id and data through req.body
 async function updateProduct(req, res) {
 
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+	// Check for valid input data: username, productID, newSkuNum
+	const username = req.query.username;
+	const productID = req.query.category;
+	const newSkuNum = req.query.skuNum;
+	if (!username || !productID || !newSkuNum) return res.status(400).send(`Missing valid username [${username}], product ID [${productID}], or sku number[${newSkuNum}]`);
 
-    try {
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
 
-        // Check for valid query
-        if (!req.query.id) {
-            throw new Error("Request is missing an id value in query");
-        }
+	// Get user index for referencing respective data
+	const userDataIndex = user.productSetIndex;
 
-        // Find product in database and handle not found
-        const fetchedProduct = readProductsJson.products[userProductIndex].find((product) => product.id == req.query.id);
-        if (!fetchedProduct) return res.status(401).send(`Product id ${req.query.id} not found in database`);
+	// Check if new product already exists, if so, throw error
+ 	let fetchedNewProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+ 	if (fetchedNewProduct) return res.status(409).send(`Product with that name already exists: ${fetchedNewProduct}`);
 
-        // Define new product using provided data if applicable
-        const updatedProduct = {
-            "id": req.body.skuNum ? req.body.skuNum : fetchedProduct.id,
-            "name": req.body.name ? req.body.name : fetchedProduct.name,
-            "price": req.body.price ? req.body.price : fetchedProduct.price,
-            "skuNum": req.body.skuNum ? req.body.skuNum : fetchedProduct.skuNum,
-            "taxable": (req.body.taxable != fetchedProduct.taxable)? req.body.taxable : fetchedProduct.taxable,
-            "fullPrice": req.body.fullPrice ? req.body.fullPrice : fetchedProduct.fullPrice,
-            "category": req.body.category ? req.body.category : fetchedProduct.category
-        };
+ 	// Check if original product exists, otherwise throw error
+ 	let originalProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == req.query.id);
+ 	if (originalProductIndex == -1) return res.status(404).send(`Product with that ID does not exist: ${req.query.id}`);
 
-        // Update product in database, sort in case of changes
-        const targetIndex = readProductsJson.products[userProductIndex].indexOf(fetchedProduct);
-        readProductsJson.products[userProductIndex][targetIndex] = updatedProduct;
-        readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
-        fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+ 	// Get orignal product
+ 	let fetchedOriginalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
 
-        // Update barcode image if SKU was updated, query being new id and fetchedProduct being the old id
-        if (req.query.skuNum && req.query.skuNum != fetchedProduct.id) {
+	// Define new product using given data if applicable
+	const updatedProduct = {
+	    "id": req.body.skuNum ? req.body.skuNum : fetchedOriginalProduct.id,
+	    "name": req.body.name ? req.body.name : fetchedOriginalProduct.name,
+	    "price": req.body.price ? req.body.price : fetchedOriginalProduct.price,
+	    "skuNum": req.body.skuNum ? req.body.skuNum : fetchedOriginalProduct.skuNum,
+	    "taxable": (req.body.taxable != fetchedOriginalProduct.taxable)? req.body.taxable : fetchedOriginalProduct.taxable,
+	    "fullPrice": req.body.fullPrice ? req.body.fullPrice : fetchedOriginalProduct.fullPrice,
+	    "category": req.body.category ? req.body.category : fetchedOriginalProduct.category
+	}
+
+ 	try {
+
+ 		// Update product in database, sort list of products
+ 		readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
+ 		readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+ 		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+
+ 		// Update barcode image if SKU was updated, query being new id and fetchedOriginalProduct being the old id
+ 		if (req.query.skuNum && req.query.skuNum != fetchedOriginalProduct.id) {
+
             const oldBarcodeImagePath = `${barcodeFolderDirectory}${fetchedProduct.id}.png`;
             const newBarcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
@@ -301,37 +314,44 @@ async function updateProduct(req, res) {
             if (!response.ok) throw new Error('Barcode API response was bad');
             const imageBuffer = await response.arrayBuffer();
             await fs.promises.writeFile(newBarcodeImagePath, Buffer.from(imageBuffer));
-        }
-        res.status(200).send(`Updated the following...\n${JSON.stringify(fetchedProduct, null, 2)}\nto...\n${JSON.stringify(updatedProduct, null, 2)}`);
-    } catch (err) {
-        console.error("Failed to update product", err);
-        res.status(500).send("Interal server error");
-    }
+
+ 		}
+
+        // Send status message
+        res.status(200).send(`Updated the following...\n${JSON.stringify(fetchedOriginalProduct, null, 2)}\nto...\n${JSON.stringify(updatedProduct, null, 2)}`);
+
+	} catch (err) {
+		console.error("Failed to update product", err);
+		res.status(500).send("Internal server error");
+	}
 }
 
-// Delete existing item and it's barcode image specified by id in req.query
-async function deleteProduct (req, res) {
+// Delete existing item and barcode selected by req.query
+async function deleteProduct(req, res) {
 
-    try {
+	// Check for valid input data: username, productID
+	const username = req.query.username;
+	const productID = req.query.id;
+	if (!username || !category) return res.status(400).send(`Missing valid input data. Username: ${username}, Product ID: ${productID}`);
 
-        // Check for id in query
-        if (!req.query.id) {
-            throw new Error("Request is missing an id value in the query");
-        }
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
 
-        // Get user's product list and get index of specified product
-        const userSetIndex = readProductsJson.users.find(user => user.username === req.query.username).productSetIndex;
-        const fetchedProductIndex = await readProductsJson.products[userSetIndex].findIndex((product) => product.id == req.query.id);
+	// Get user index for referencing respective data
+	const userDataIndex = user.productSetIndex;
 
-        if (fetchedProductIndex === -1) {
-            return res.status(401).send(`Product id ${req.query.id} not found in database`);
-        }
+	// Check database for non-existent product id in database
+	let fetchedProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+	if (!fetchedProduct) return res.status(409).send(`Product with that id not found. Given id: ${JSON.stringify(fetchedProduct, null, 2)}`);
 
-        // Remove product from database
+	try {
+
+        // Remove product from database set and write new file
         readProductsJson.products[userSetIndex].splice(fetchedProductIndex, 1);
         fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
 
-        // Remove barcode image for the respective product
+        // Remove barcode image for respective product
         const oldBarcodeImagePath = `${barcodeFolderDirectory}${readProductsJson.products[userSetIndex][fetchedProductIndex].id}.png`;
         if (fs.existsSync(oldBarcodeImagePath)) {
             await fs.promises.unlink(oldBarcodeImagePath);
@@ -340,11 +360,140 @@ async function deleteProduct (req, res) {
         // Send status message
         res.status(200).send(`Product with id ${req.query.id} deleted successfully`);
 
-    } catch (err) {
-        console.error("Error removing product or deleting barcode image:", err);
-        return res.status(500).send("Internal server error");
-    }
+	} catch (err) {
+		console.error("Error removing product or deleting barcode image:", err);
+		return res.status(500).send("Internal server error");
+	}
+}
 
+// New category for database, received in red.query
+async function createCategory(req, res) {
+
+	// Check for valid input data: username, category
+	const username = req.query.username;
+	const category = req.query.category;
+	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}] or category [${req.query.category}] data`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
+
+	// Get user index for referencing respective data
+	const userDataIndex = user.productSetIndex;
+
+	// Check database for preexisting category in database
+	let fetchedCategory = readProductsJson.categories[userDataIndex].find(category => category == req.query.category);
+	if (fetchedCategory) return res.status(409).send(`Category with that name already exists: ${category}`);
+
+	try {
+
+		// Push new category to database and sort
+		readProductsJson.categories[userDataIndex].push(category);
+		readProductsJson.categories[userDataIndex].sort();
+
+		// Submit to database, and send response
+		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+		return res.status(200).send(`The following category has been added\n${JSON.stringify(req.query.category, null, 2)}`);
+
+	} catch (err) {
+		console.error(err);
+		return res.status(401).send(`Error was thrown: ${err}`);
+	}
+}
+
+// Update existing category, selected by req.query and req.body
+async function updateCategory(req, res) {
+
+	// Check for valid input data: username, category, newCategory
+	const username = req.query.username;
+	const category = req.query.category;
+	const newCategory = req.body.category;
+	if (!username || !category || !newCategory) return res.status(400).send(`Missing valid username [${req.query.username}], category [${req.query.category}], or newCateogry [${newCategory}] data`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
+
+	// Get user index for referencing and get list of categories
+	const userDataIndex = user.productSetIndex;
+	const categoriesList = readProductsJson.categories[userDataIndex];
+
+	// Check if new category already exists, if so, throw error
+	const fetchedNewCategory = categoriesList.find(category => category == req.body.category);
+	if (fetchedNewCategory) return res.status(409).send(`Category with that name already exists: ${fetchedNewCategory}`);
+
+	// Check if original category exists, otherwise throw error
+	const originalCategoryIndex = categoriesList.findIndex(category => category == req.query.category);
+	if (originalCategoryIndex == -1) return res.status(404).send(`Category with that name does not exist: ${req.query.category}`);
+
+	try {
+
+		// Replace the original category with new category
+		categoriesList[originalCategoryIndex] = newCategory;
+
+		// Update category in each product's category list
+		for (const product of readProductsJson.products[userDataIndex]) {
+			product.category = product.category.map(cat => cat == category ? newCategory : cat);
+		}
+
+		// Save data changes to database file
+		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+
+		// Send response
+		res.status(200).send(`Category rename from ${category} to ${newCategory}`);
+
+	} catch (err) {
+		console.error("Error updating category:", err);
+		res.status(500).send("Internal server error");
+	}
+}
+
+// Delete existing category from entire database, selected by red.query
+async function deleteCategory(req, res) {
+
+	// Check for valid input data: username, category, newCategory
+	const username = req.query.username;
+	const category = req.query.category;
+	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}], category [${req.query.category}], or newCateogry [${newCategory}] data`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
+
+	// Get user index for referencing respective data
+	const userDataIndex = user.productSetIndex;
+
+	// Check database for missing category in database
+	const fetchedCategory = readProductsJson.categories[userDataIndex].find(category => category == req.query.category);
+	if (!fetchedCategory) return res.status(404).send(`Category with that name does not exist: ${category}`);
+
+	// Collect index for category
+	const fetchedCategoryIndex = readProductsJson.categories[userDataIndex].findIndex((category) => category == req.query.category);
+
+	try {
+
+		// Delete category from database
+		readProductsJson.categories[userDataIndex].splice(fetchedCategoryIndex, 1);
+
+		// Iterate through each product in database
+		for (const product of readProductsJson.products[userDataIndex]) {
+
+			// Splice the specified category out of each list of categories
+			const spliceIndex = product.category.findIndex((category) => category == req.query.category);
+			if (spliceIndex != -1) product.category.splice(spliceIndex, 1);
+
+		}
+
+		// Write data back to file
+		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+
+		// Send response
+		res.status(200).send(`Category deleted successfully: ${fetchedCategory}`);
+
+	} catch (err) {
+		console.error("Error removing category:", err);
+		return res.status(500).send("Internal server error");
+	}
 }
 
 module.exports = {
@@ -355,5 +504,8 @@ module.exports = {
     getRandomProducts,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    createCategory,
+    updateCategory,
+    deleteCategory
 };
