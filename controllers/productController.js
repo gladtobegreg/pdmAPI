@@ -211,18 +211,21 @@ function getRandomProducts (req, res) {
 // New item to add to database, received in req.body
 async function createProduct(req, res) {
 
-	// Get user and relevant user index
-	const user = readProductsJson.users.find(user => user.username === req.query.username);
+	// Check for valid input data: username, productID
+	const username = req.query.username;
+	const productID = req.query.id;
+	if (!username || !productID) return res.status(400).send(`Missing valid username [${req.query.username}] or product ID [${req.query.id}]`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${req.query.username}`);
+
+	// Get user index for referencing respective data
 	const userDataIndex = user.productSetIndex;
 
-	// Check for valid query data
-	if (!req.query.id) {
-		throw new Error("Request is missing valid query data");
-	}
-
-	// Check database for preexisting product with same id in database
-	const fetchedProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
-	if (fetchedProduct) return res.status(401).send(`Product with that id is already in the list: ${JSON.stringify(fetchedProduct, null, 2)}`);
+	// Check if new product already exists, if so, throw error
+ 	let fetchedNewProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+ 	if (fetchedNewProduct) return res.status(409).send(`Product with that name already exists: ${fetchedNewProduct}`);
 
 	try {
 
@@ -247,8 +250,8 @@ async function createProduct(req, res) {
         return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
 
 	} catch (err) {
-		console.error(err);
-		return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
+		console.error("Failed to create new product:", err);
+		return res.status(500).send(`Server error adding:\n${JSON.stringify(req.body, null, 2)}`);
 	}
 }
 
@@ -257,13 +260,13 @@ async function updateProduct(req, res) {
 
 	// Check for valid input data: username, productID, newSkuNum
 	const username = req.query.username;
-	const productID = req.query.category;
+	const productID = req.query.id;
 	const newSkuNum = req.query.skuNum;
-	if (!username || !productID || !newSkuNum) return res.status(400).send(`Missing valid username [${username}], product ID [${productID}], or sku number[${newSkuNum}]`);
+	if (!username || !productID || !newSkuNum) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}], or sku number[${req.query.skuNum}]`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
-	if (!user) throw new Error(`User not found: ${req.query.username}`);
+	if (!user) throw new Error(`User not found: ${username}`);
 
 	// Get user index for referencing respective data
 	const userDataIndex = user.productSetIndex;
