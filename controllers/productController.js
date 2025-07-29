@@ -107,105 +107,117 @@ function getProductsByCategory (req, res) {
 // Request for random products given criteria in req.query
 function getRandomProducts (req, res) {
 
+    // Check for username in database and throw error if not found
     const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+    if (!user) {
+        console.error(`User ${req.query.username} not found`);
+        return res.status(404).json({error: 'User not found'});
+    }
 
-    // Pull request parameters
-    var category = req.query.category;
-    var total = parseFloat(req.query.total); // Consider parseFloat() to get decimal places from total
+    try {
 
-    function getSingleRandomProduct(category, total) {
+        // Set variables for requested parameters
+        const userProductIndex = user.productSetIndex;
+        var category = req.query.category.toLowerCase();
+        var total = parseFloat(req.query.total);
 
-        //let selectedProduct;
-        let possibleProducts = {};
-        let rollingSum = 0;
+        function getSingleRandomProduct(category, total) {
 
-        const categoryFilteredProducts =
-            (category == 'all') ?
-            readProductsJson.products[userProductIndex] :
-            readProductsJson.products[userProductIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
+            //let selectedProduct;
+            let possibleProducts = {};
+            let rollingSum = 0;
 
-        // Sort the json items by price, high to low
-        categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
+            const categoryFilteredProducts =
+                (category == 'all') ?
+                readProductsJson.products[userProductIndex] :
+                readProductsJson.products[userProductIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
 
-        // Iterate through product list and build dictionary of product:rollingSum for any valid products
-        for (const product of categoryFilteredProducts) {
-            let productFullPrice = parseFloat(product.fullPrice);
-            if (isNaN(productFullPrice)) continue;
-            if (productFullPrice <= total) {
-                rollingSum += productFullPrice;
-                possibleProducts[product.id] = rollingSum;
+            // Sort the json items by price, high to low
+            categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
+
+            // Iterate through product list and build dictionary of product:rollingSum for any valid products
+            for (const product of categoryFilteredProducts) {
+                let productFullPrice = parseFloat(product.fullPrice);
+                if (isNaN(productFullPrice)) continue;
+                if (productFullPrice <= total) {
+                    rollingSum += productFullPrice;
+                    possibleProducts[product.id] = rollingSum;
+                }
+                else break;
             }
-            else break;
-        }
 
-        // Get a random number from the range of rollingSum
-        const randomSum = Math.floor(Math.random() * rollingSum);
+            // Get a random number from the range of rollingSum
+            const randomSum = Math.floor(Math.random() * rollingSum);
 
-        // Find the product corresponding to the randomly selected sum
-        for (const productId in possibleProducts) {
-            if (randomSum <= possibleProducts[productId]) {
-                
-                let selectedProduct = categoryFilteredProducts.find(product => product.id == productId);
-                return selectedProduct;
+            // Find the product corresponding to the randomly selected sum
+            for (const productId in possibleProducts) {
+                if (randomSum <= possibleProducts[productId]) {
+                    
+                    let selectedProduct = categoryFilteredProducts.find(product => product.id == productId);
+                    return selectedProduct;
+                }
             }
-        }
 
-        // No valid product is found, usually total is smaller than any product price
-        console.log(`No valid product was found in getSingleRandomProduct()\nrandomSum was ${randomSum}\ntotal was ${total}`);
-        return null;
+            // No valid product is found, usually total is smaller than any product price
+            console.log(`No valid product was found in getSingleRandomProduct()\nrandomSum was ${randomSum}\ntotal was ${total}`);
+            return null;
 
-    } // End of getSingleRandomProduct() function
+        } // End of getSingleRandomProduct() function
 
-    function getRandomProductList(category, total) {
+        function getRandomProductList(category, total) {
 
-        // Set variables and product list
-        let selectedProduct;
-        let selectedProducts = [];
-        let minimumRemainder = 0.98;
-        let remainingTotal = total;
+            // Set variables and product list
+            let selectedProduct;
+            let selectedProducts = [];
+            let minimumRemainder = 0.98;
+            let remainingTotal = total;
 
-        // Fill list of products while tracking remaining total
-        while (remainingTotal > minimumRemainder) {
-            selectedProduct = getSingleRandomProduct(category, remainingTotal);
-            if (!selectedProduct) break;
-            selectedProducts.push(selectedProduct);
-            remainingTotal -= parseFloat(selectedProduct.fullPrice);
-        }
+            // Fill list of products while tracking remaining total
+            while (remainingTotal > minimumRemainder) {
+                selectedProduct = getSingleRandomProduct(category, remainingTotal);
+                if (!selectedProduct) break;
+                selectedProducts.push(selectedProduct);
+                remainingTotal -= parseFloat(selectedProduct.fullPrice);
+            }
 
-        // Return the list of products and the total price remainder for the list        
-        return { selectedProducts, remainingTotal };
+            // Return the list of products and the total price remainder for the list        
+            return { selectedProducts, remainingTotal };
 
-    } // End of getRandomProductList() function
+        } // End of getRandomProductList() function
 
-    // Make a first initial fetch of random products and report remainder value
-    const firstResponseObject = getRandomProductList(category, total);
+        // Make a first initial fetch of random products and report remainder value
+        const firstResponseObject = getRandomProductList(category, total);
 
-    // Reroll randomizer 4 times to minizmize the remainder
-    for (let i = 0; (i < 4) && (firstResponseObject.remainingTotal > 0.15); i++) {
+        // Reroll randomizer 4 times to minizmize the remainder
+        for (let i = 0; (i < 4) && (firstResponseObject.remainingTotal > 0.15); i++) {
 
-        // If initial product list has low enough remainder, skip reroll
-        if (firstResponseObject.remainingTotal < 0.08) break;
+            // If initial product list has low enough remainder, skip reroll
+            if (firstResponseObject.remainingTotal < 0.08) break;
 
-        else {
-            let secondResponseObject = getRandomProductList(category, total);
-            if (secondResponseObject.remainingTotal < firstResponseObject.remainingTotal) {
-                // Better remainder rolled, replace original object
-                Object.assign(firstResponseObject, secondResponseObject);
-            } 
-        }
+            else {
+                let secondResponseObject = getRandomProductList(category, total);
+                if (secondResponseObject.remainingTotal < firstResponseObject.remainingTotal) {
+                    // Better remainder rolled, replace original object
+                    Object.assign(firstResponseObject, secondResponseObject);
+                } 
+            }
 
-    } // End of for loop
+        } // End of for loop
 
-    // Report remainder in server console
-    console.log(`Final remainder: ${firstResponseObject.remainingTotal}\n`);
-    if (firstResponseObject.remainingTotal < 0.009)
-        console.log(`The remaining total was very little\nHere is the firstResponseObject.selectedProducts:
-            \n${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
-    //console.log(`Reported products: ${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
+        // Report remainder in server console
+        console.log(`Final remainder: ${firstResponseObject.remainingTotal}\n`);
+        if (firstResponseObject.remainingTotal < 0.009)
+            console.log(`The remaining total was very little\nHere is the firstResponseObject.selectedProducts:
+                \n${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
+        //console.log(`Reported products: ${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
 
-    // Send response to api call
-    if (firstResponseObject) res.status(200).send(firstResponseObject);
+        // Send response to api call
+        if (firstResponseObject) res.status(200).send(firstResponseObject);
+
+    } catch (error) {
+        console.error('Server error in /api/products/random:', error);
+        return res.status(500).json({ error: 'Internal Server Error'});
+    }
 
 }
 
