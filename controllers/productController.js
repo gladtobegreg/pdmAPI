@@ -112,7 +112,7 @@ function getRandomProducts (req, res) {
 
     // Pull request parameters
     var category = req.query.category;
-    var total = req.query.total; // Consider parseFloat() to get decimal places from total
+    var total = parseFloat(req.query.total); // Consider parseFloat() to get decimal places from total
 
     function getSingleRandomProduct(category, total) {
 
@@ -123,7 +123,7 @@ function getRandomProducts (req, res) {
         const categoryFilteredProducts =
             (category == 'all') ?
             readProductsJson.products[userProductIndex] :
-            readProductsJson.products[userProductIndex].filter(product => product.category == category);
+            readProductsJson.products[userProductIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
 
         // Sort the json items by price, high to low
         categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
@@ -131,6 +131,7 @@ function getRandomProducts (req, res) {
         // Iterate through product list and build dictionary of product:rollingSum for any valid products
         for (const product of categoryFilteredProducts) {
             let productFullPrice = parseFloat(product.fullPrice);
+            if (isNaN(productFullPrice)) continue;
             if (productFullPrice <= total) {
                 rollingSum += productFullPrice;
                 possibleProducts[product.id] = rollingSum;
