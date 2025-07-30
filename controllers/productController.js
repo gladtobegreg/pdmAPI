@@ -104,7 +104,7 @@ function getProductsByCategory (req, res) {
     res.status(200).send(selectedProductsArray); 
 }
 
-// TEST FUNCTION
+// Request for random products given criteria in req.query
 function getRandomProducts (req, res) {
 
     // Check for username in database and throw error if not found
@@ -114,22 +114,114 @@ function getRandomProducts (req, res) {
         return res.status(404).json({error: 'User not found'});
     }
 
-    // Set variables for requested parameters
-    const userProductIndex = user.productSetIndex;
-    var category = req.query.category.toLowerCase();
-    var total = parseFloat(req.query.total);
+    try {
 
-    // TEST
-    console.log('--- /api/products.random called ---');
-    console.log('Username: ', req.query.username);
-    console.log('Total: ', total);
-    console.log('User Index: ', userProductIndex);
+        // Set variables for requested parameters
+        const userDataIndex = user.productSetIndex;
+        const category = req.query.category.toLowerCase();
+        const total = parseFloat(req.query.total);
 
-    const matchingProducts = readProductsJson.products[userProductIndex].filter(product => 
-        Array.isArray(product.category) && product.category.includes('otc')
-    );
+        // API server print to console check for data
+        console.log('--- /api/products.random called ---');
+        console.log('Username: ', req.query.username);
+        console.log('Total: ', total);
+        console.log('User Index: ', userDataIndex);
 
-    if (matchingProducts) res.status(200).json(matchingProducts);
+        function getRandomProductList (category, total) {
+
+            function getSingleRandomProduct (category, total) {
+
+                // Set needed variables
+                let possibleProducts = {};
+                let rollingSum = 0;
+
+                // Get valid potential products based on passed category value
+                const categoryFilteredProducts = (category == 'all') ?
+                    readProductsJson.products[userProductIndex] :
+                    readProductsJson.products[userProductIndex].filter(product =>
+                        Array.isArray(product.categories) && product.categories.includes(category)
+                    );
+
+                // Sort products by price, high to low
+                categoryFilteredProducts.sort((a, b) =>
+                    parseFloat(a.fullPrice) - parseFloat(b.fullPrice)
+                );
+
+                // Build dictionary of {product: rollingSum} for any valid products
+                for (const product of categoryFilteredProducts) {
+                    let productFullPrice = parseFloat(product.fullPrice);
+                    if (isNaN(productFullPrice)) continue;
+                    if (productFullPrice <= total) {
+                        rollingSum += productFullPrice;
+                        possibleProducts[product.id] = rollingSum;
+                    }
+                    else break;
+                }
+
+                // Get a random number from the range of rollingSum
+                const randomSum = Math.floor(Math.random() * rollingSum);
+
+                // Find the product corresponding to the randomly selected sum
+                for (const productId in possibleProducts) {
+                    if (randomSum <= possibleProducts[productId]) {
+                        let selectedProduct = categoryFilteredProducts.find(product =>
+                            product.id === productId
+                        );
+                        return selectedProduct;
+                    }
+                }
+
+                // A valid product was not found, perhaps total is less than any valid product price
+                console.log(`No valid product was found in getSingleRandomProduct()\nrandomSum was ${randomSum}\ntotal was ${total}`);
+                return null;
+
+            } // End of getSingleRandomProduct() function
+
+            // Set needed variables and product list
+            let selectedProduct;
+            let selectedProducts = [];
+            let minimumRemainder = 0.98;
+            let remainingTotal = total;
+
+            // Fill list of products while tracking remaining total
+            while (remainingTotal > minimumRemainder) {
+                selectedProduct = getSingleRandomProduct(category, remainingTotal);
+                if (!selectedProduct) break;
+                selectedProducts.push(selectedProduct);
+                remainingTotal -= parseFloat(selectedProduct.fullPrice);
+            }
+
+            // Return the list of products and the total price remainder
+            return { selectedProducts, remainingTotal };
+
+        }  // End of getRandomProductList() function
+
+        // Make a first initial fetch of random products and report remainder value
+        const firstResponseObject = getRandomProductList(category, total);
+
+        // Reroll randomizer 4 times to minizmize the remainder
+        for (let i = 0; (i < 4) && (firstResponseObject.remainingTotal > 0.15); i++) {
+
+            // If initial product list has low enough remainder, skip reroll
+            if (firstResponseObject.remainingTotal < 0.08) break;
+
+            // Get another product list and compare, swap if needed
+            else {
+                let secondResponseObject = getRandomProductList(category, total);
+                if (secondResponseObject.remainingTotal < firstResponseObject.remainingTotal) {
+                    Object.assign(firstResponseObject, secondResponseObject);
+                } 
+            }
+
+        } // End of for loop
+
+        // Send api response
+        if (firstResponseObject) res.status(200).json(firstResponseObject);
+
+    } catch (error) {
+        console.error('Server error in /api/products/random:', error);
+        return res.status(500).json({ error: 'Internal Server Error'});
+    }
 
 }
 
