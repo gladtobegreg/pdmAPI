@@ -125,7 +125,12 @@ function getRandomProducts (req, res) {
     console.log('Total: ', total);
     console.log('User Index: ', userProductIndex);
 
-    res.status(200).json(readProductsJson.products[userProductIndex].some(product => product.category == 'otc'));
+    const matchingProducts = readProductsJson.products[userProductIndex].filter(product => 
+        Array.isArray(product.category) && product.category.includes('otc')
+    );
+
+    if (matchingProducts) res.status(200).json(matchingProducts);
+
 }
 
 /*
