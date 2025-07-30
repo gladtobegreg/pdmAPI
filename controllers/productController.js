@@ -129,6 +129,13 @@ function getRandomProducts (req, res) {
 
         function getRandomProductList (category, total) {
 
+            // Get products including specified category
+            const matchingProducts = readProductsJson.products[userDataIndex].filter(product => 
+                Array.isArray(product.category) && product.category.includes(category)
+            );
+
+            return matchingProducts;
+
             function getSingleRandomProduct (category, total) {
 
                 // Set needed variables
