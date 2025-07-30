@@ -121,6 +121,12 @@ function getRandomProducts (req, res) {
         var category = req.query.category.toLowerCase();
         var total = parseFloat(req.query.total);
 
+        // TEST
+        console.log('--- /api/products.random called ---');
+        console.log('Username: ', req.query.username);
+        console.log('Total: ', total);
+        console.log('User Index: ', userProductIndex);
+
         function getSingleRandomProduct(category, total) {
 
             //let selectedProduct;
@@ -132,8 +138,14 @@ function getRandomProducts (req, res) {
                 readProductsJson.products[userProductIndex] :
                 readProductsJson.products[userProductIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
 
+            // TESTING
+            console.log(`Filtered ${categoryFilteredProducts.length} products for category "${category}"`);
+
             // Sort the json items by price, high to low
-            categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
+            // categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
+            categoryFilteredProducts.sort((a, b) =>
+                parseFloat(a.fullPrice) - parseFloat(b.fullPrice)
+            );
 
             // Iterate through product list and build dictionary of product:rollingSum for any valid products
             for (const product of categoryFilteredProducts) {
@@ -187,6 +199,12 @@ function getRandomProducts (req, res) {
 
         // Make a first initial fetch of random products and report remainder value
         const firstResponseObject = getRandomProductList(category, total);
+
+        // TEST
+        if (firstResponseObject) {
+            console.log("Sending response:", JSON.stringify(firstResponseObject, null, 2));
+            return res.status(200).json(firstResponseObject);
+        }
 
         // Reroll randomizer 4 times to minizmize the remainder
         for (let i = 0; (i < 4) && (firstResponseObject.remainingTotal > 0.15); i++) {
