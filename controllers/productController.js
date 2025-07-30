@@ -230,7 +230,7 @@ function getRandomProducts (req, res) {
         //console.log(`Reported products: ${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
 
         // Send response to api call
-        if (firstResponseObject) res.status(200).send(firstResponseObject);
+        if (firstResponseObject) res.status(200).json(firstResponseObject);
 
     } catch (error) {
         console.error('Server error in /api/products/random:', error);
