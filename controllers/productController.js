@@ -104,8 +104,34 @@ function getProductsByCategory (req, res) {
     res.status(200).send(selectedProductsArray); 
 }
 
-// Request for random products given criteria in req.query
+// TEST FUNCTION
 function getRandomProducts (req, res) {
+
+    // Check for username in database and throw error if not found
+    const user = readProductsJson.users.find(user => user.username === req.query.username);
+    if (!user) {
+        console.error(`User ${req.query.username} not found`);
+        return res.status(404).json({error: 'User not found'});
+    }
+
+    // Set variables for requested parameters
+    const userProductIndex = user.productSetIndex;
+    var category = req.query.category.toLowerCase();
+    var total = parseFloat(req.query.total);
+
+    // TEST
+    console.log('--- /api/products.random called ---');
+    console.log('Username: ', req.query.username);
+    console.log('Total: ', total);
+    console.log('User Index: ', userProductIndex);
+
+    const firstResponseObject = getRandomProductList("otc", 42);
+    if (firstResponseObject) res.status(200).json(firstResponseObject);
+}
+
+/*
+// Request for random products given criteria in req.query
+function getRandomProducts_BACKUP (req, res) {
 
     // Check for username in database and throw error if not found
     const user = readProductsJson.users.find(user => user.username === req.query.username);
@@ -238,6 +264,7 @@ function getRandomProducts (req, res) {
     }
 
 }
+*/
 
 // New item to add to database, received in req.body
 async function createProduct(req, res) {
