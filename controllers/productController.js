@@ -125,8 +125,7 @@ function getRandomProducts (req, res) {
     console.log('Total: ', total);
     console.log('User Index: ', userProductIndex);
 
-    const firstResponseObject = getRandomProductList("otc", 42);
-    if (firstResponseObject) res.status(200).json(firstResponseObject);
+    res.status(200).json(readProductsJson.products[userProductIndex]);
 }
 
 /*
