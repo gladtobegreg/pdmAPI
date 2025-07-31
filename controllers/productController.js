@@ -129,13 +129,6 @@ function getRandomProducts (req, res) {
 
         function getRandomProductList (category, total) {
 
-            // Get products including specified category
-            const matchingProducts = readProductsJson.products[userDataIndex].filter(product => 
-                Array.isArray(product.category) && product.category.includes(category)
-            );
-
-            return matchingProducts;
-
             function getSingleRandomProduct (category, total) {
 
                 // Set needed variables
@@ -144,8 +137,8 @@ function getRandomProducts (req, res) {
 
                 // Get valid potential products based on passed category value
                 const categoryFilteredProducts = (category == 'all') ?
-                    readProductsJson.products[userProductIndex] :
-                    readProductsJson.products[userProductIndex].filter(product =>
+                    readProductsJson.products[userDataIndex] :
+                    readProductsJson.products[userDataIndex].filter(product =>
                         Array.isArray(product.categories) && product.categories.includes(category)
                     );
 
