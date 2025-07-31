@@ -139,7 +139,7 @@ function getRandomProducts (req, res) {
                 const categoryFilteredProducts = (category == 'all') ?
                     readProductsJson.products[userDataIndex] :
                     readProductsJson.products[userDataIndex].filter(product =>
-                        Array.isArray(product.categories) && product.categories.includes(category)
+                        Array.isArray(product.category) && product.category.includes(category)
                     );
 
                 // Sort products by price, high to low
