@@ -43,16 +43,16 @@ function getAccess(req, res) {
 async function getAllProducts(req, res) {
     
     const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+    const userDataIndex = user.productSetIndex;
 
     try {
 
-        if (!readProductsJson.products[userProductIndex]) {
+        if (!readProductsJson.products[userDataIndex]) {
             throw new Error("Products database not read properly");
         }
 
         // For each product check for existing barcode, else make api request
-        const promises = readProductsJson.products[userProductIndex].map(async (product) => {
+        const promises = readProductsJson.products[userDataIndex].map(async (product) => {
             const barcodeImagePath = `${barcodeFolderDirectory}${product.id}.png`;
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
             try {
@@ -67,11 +67,11 @@ async function getAllProducts(req, res) {
 
         // Await all product checks, sort database, and send response
         await Promise.all(promises);
-        readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
-        // res.status(200).send(readProductsJson.products[userProductIndex]);
+        readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+        // res.status(200).send(readProductsJson.products[userDataIndex]);
         res.status(200).json({
-            "categories": readProductsJson.categories[userProductIndex],
-            "products": readProductsJson.products[userProductIndex]
+            "categories": readProductsJson.categories[userDataIndex],
+            "products": readProductsJson.products[userDataIndex]
         });
         
 
@@ -85,9 +85,9 @@ async function getAllProducts(req, res) {
 function getProductById (req, res) {
 
     const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+    const userDataIndex = user.productSetIndex;
 
-    var selectedItem = readProductsJson.products[userProductIndex].find(product => product.id == req.query.id);
+    var selectedItem = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
     if (selectedItem) {
         res.status(200).send(selectedItem);
     }
@@ -98,9 +98,9 @@ function getProductById (req, res) {
 function getProductsByCategory (req, res) {
 
     const user = readProductsJson.users.find(user => user.username === req.query.username);
-    const userProductIndex = user.productSetIndex;
+    const userDataIndex = user.productSetIndex;
 
-    var selectedProductsArray = readProductsJson.products[userProductIndex].filter((product) => product.category == req.query.category);
+    var selectedProductsArray = readProductsJson.products[userDataIndex].filter((product) => product.category == req.query.category);
     res.status(200).send(selectedProductsArray); 
 }
 
@@ -239,7 +239,7 @@ function getRandomProducts_BACKUP (req, res) {
     try {
 
         // Set variables for requested parameters
-        const userProductIndex = user.productSetIndex;
+        const userDataIndex = user.productSetIndex;
         var category = req.query.category.toLowerCase();
         var total = parseFloat(req.query.total);
 
@@ -247,7 +247,7 @@ function getRandomProducts_BACKUP (req, res) {
         console.log('--- /api/products.random called ---');
         console.log('Username: ', req.query.username);
         console.log('Total: ', total);
-        console.log('User Index: ', userProductIndex);
+        console.log('User Index: ', userDataIndex);
 
         function getSingleRandomProduct(category, total) {
 
@@ -257,8 +257,8 @@ function getRandomProducts_BACKUP (req, res) {
 
             const categoryFilteredProducts =
                 (category == 'all') ?
-                readProductsJson.products[userProductIndex] :
-                readProductsJson.products[userProductIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
+                readProductsJson.products[userDataIndex] :
+                readProductsJson.products[userDataIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
 
             // TESTING
             console.log(`Filtered ${categoryFilteredProducts.length} products for category "${category}"`);
@@ -378,13 +378,13 @@ async function createProduct(req, res) {
 	const userDataIndex = user.productSetIndex;
 
 	// Check if new product already exists, if so, throw error
- 	let fetchedNewProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+ 	const fetchedNewProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
  	if (fetchedNewProduct) return res.status(409).send(`Product with that name already exists: ${fetchedNewProduct}`);
 
 	try {
 
 	    // Push product to database and request barcode from api
-	    readProductsJson.products[userProductIndex].push(req.body);
+	    readProductsJson.products[userDataIndex].push(req.body);
 	    const barcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
 	    const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
@@ -399,7 +399,7 @@ async function createProduct(req, res) {
 	    }
 
 	    // Sort products, submit to database, and send response
-        readProductsJson.products[userProductIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+        readProductsJson.products[userDataIndex].sort((a, b) => parseFloat(b.fullPrice) - parseFloat(a.fullPrice));
         fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
         return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
 
