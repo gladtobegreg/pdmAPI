@@ -412,10 +412,10 @@ async function createProduct(req, res) {
 // Update existing item selected by req.query.id and data through req.body
 async function updateProduct(req, res) {
 
-	// Check for valid input data: username, productID, newSkuNum
+	// Check for valid input data: username, productID
 	const username = req.query.username;
-	const productID = req.query.id;
-	if (!username || !productID) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
+	const originalId = req.query.id;
+	if (!username || !originalId) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
 
 	// Check if a user exists with given username
     const user = readProductsJson.users.find(user => user.username == username);
@@ -425,21 +425,22 @@ async function updateProduct(req, res) {
 	const userDataIndex = user.productSetIndex;
 
  	// Check if original product exists, otherwise throw error
-    const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === productID);
-    if (originalProductIndex === -1) return res.status(404).send(`Product not found: ${productID}`);
+    const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === originalId);
+    if (originalProductIndex === -1) return res.status(404).send(`Product with ID ${originalId} not found`);
 
- 	// Get old product to augment new data
-    const oldProduct = readProductsJson.products[userDataIndex][originalProductIndex];
+ 	// Get original product and figure the id that will be assigned to the new product
+    const originalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
+    const newId = req.body.skuNum || originalId;
 
 	// Define new product using given data if applicable
 	const updatedProduct = {
-	    id: req.body.skuNum || oldProduct.id,
-	    name: req.body.name || oldProduct.name,
-	    price: req.body.price || oldProduct.price,
-	    skuNum: req.body.skuNum || oldProduct.skuNum,
-	    taxable: req.body.taxable ?? oldProduct.taxable,
-	    fullPrice: req.body.fullPrice || oldProduct.fullPrice,
-	    category: req.body.category || oldProduct.category
+	    id: newId,
+	    name: req.body.name || originalProduct.name,
+	    price: req.body.price || originalProduct.price,
+	    skuNum: req.body.skuNum || originalProduct.skuNum,
+	    taxable: req.body.taxable ?? originalProduct.taxable,
+	    fullPrice: req.body.fullPrice || originalProduct.fullPrice,
+	    category: req.body.category || originalProduct.category
 	};
 
  	try {
@@ -449,14 +450,10 @@ async function updateProduct(req, res) {
  		readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
  		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
 
-        // Set id values to check if update is needed
-        const oldId = oldProduct.id;
-        const newId = updatedProduct.id;
-
         // If the product id needs to be updated
-        if (newId !== oldId) {
+        if (newId !== originalId) {
 
-            const oldBarcodeImagePath = `${barcodeFolderDirectory}${oldId}.png`;
+            const oldBarcodeImagePath = `${barcodeFolderDirectory}${originalId}.png`;
             const newBarcodeImagePath = `${barcodeFolderDirectory}${newId}.png`;
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
@@ -474,11 +471,11 @@ async function updateProduct(req, res) {
         }
 
         // Send status message
-        res.status(200).send(`Updated the following...\n${JSON.stringify(oldProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
+        return res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
 
 	} catch (err) {
 		console.error("Failed to update product", err);
-		res.status(500).send("Internal server error");
+		return res.status(500).send("Internal server error");
 	}
 }
 
