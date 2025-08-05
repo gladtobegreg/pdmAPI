@@ -489,7 +489,7 @@ async function deleteProduct(req, res) {
 	// Check for valid input data: username, productID
 	const username = req.query.username;
 	const productID = req.query.id;
-	if (!username || !category) return res.status(400).send(`Missing valid input data. Username: ${username}, Product ID: ${productID}`);
+	if (!username || !productID) return res.status(400).send(`Missing valid input data. Username: ${username}, Product ID: ${productID}`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
@@ -497,25 +497,29 @@ async function deleteProduct(req, res) {
 
 	// Get user index for referencing respective data
 	const userDataIndex = user.productSetIndex;
+    const userProductList = readProductsJson.products[userDataIndex];
 
-	// Check database for non-existent product id in database
-	let fetchedProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
-	if (!fetchedProduct) return res.status(409).send(`Product with that id not found. Given id: ${JSON.stringify(fetchedProduct, null, 2)}`);
+	// Check database for non-existent product in database
+	const fetchedProductIndex = userProductList.findIndex(product => product.id === productID);
+	if (fetchedProductIndex === -1) return res.status(404).send(`Product with ID ${productID} not found.`);
+
+    // Collect product from found product id
+    const fetchedProduct = userProductList[fetchedProductIndex];
 
 	try {
 
         // Remove product from database set and write new file
-        readProductsJson.products[userSetIndex].splice(fetchedProductIndex, 1);
-        fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+        userProductList.splice(fetchedProductIndex, 1);
+        fs.writeFileSync(database, JSON.stringify(userProductList, null, 2));
 
         // Remove barcode image for respective product
-        const oldBarcodeImagePath = `${barcodeFolderDirectory}${readProductsJson.products[userSetIndex][fetchedProductIndex].id}.png`;
+        const oldBarcodeImagePath = `${barcodeFolderDirectory}${fetchedProduct.id}.png`;
         if (fs.existsSync(oldBarcodeImagePath)) {
             await fs.promises.unlink(oldBarcodeImagePath);
         }
 
         // Send status message
-        res.status(200).send(`Product with id ${req.query.id} deleted successfully`);
+        res.status(200).send(`Product with id ${productID} deleted successfully`);
 
 	} catch (err) {
 		console.error("Error removing product or deleting barcode image:", err);
