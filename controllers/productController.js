@@ -415,37 +415,32 @@ async function updateProduct(req, res) {
 	// Check for valid input data: username, productID, newSkuNum
 	const username = req.query.username;
 	const productID = req.query.id;
-	const newSkuNum = req.query.skuNum;
-	if (!username || !productID || !newSkuNum) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}], or sku number[${req.query.skuNum}]`);
+	if (!username || !productID) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
 
 	// Check if a user exists with given username
-	const user = readProductsJson.users.find(user => user.username == username);
-	if (!user) throw new Error(`User not found: ${username}`);
+    const user = readProductsJson.users.find(user => user.username == username);
+    if (!user) return res.status(404).send(`User not found: ${username}`);
 
 	// Get user index for referencing respective data
 	const userDataIndex = user.productSetIndex;
 
-	// Check if new product already exists, if so, throw error
- 	let fetchedNewProduct = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
- 	if (fetchedNewProduct) return res.status(409).send(`Product with that name already exists: ${fetchedNewProduct}`);
-
  	// Check if original product exists, otherwise throw error
- 	let originalProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == req.query.id);
- 	if (originalProductIndex == -1) return res.status(404).send(`Product with that ID does not exist: ${req.query.id}`);
+    const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === productID);
+    if (originalProductIndex === -1) return res.status(404).send(`Product not found: ${productID}`);
 
- 	// Get orignal product
- 	let fetchedOriginalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
+ 	// Get old product to augment new data
+    const oldProduct = readProductsJson.products[userDataIndex][originalProductIndex];
 
 	// Define new product using given data if applicable
 	const updatedProduct = {
-	    "id": req.body.skuNum ? req.body.skuNum : fetchedOriginalProduct.id,
-	    "name": req.body.name ? req.body.name : fetchedOriginalProduct.name,
-	    "price": req.body.price ? req.body.price : fetchedOriginalProduct.price,
-	    "skuNum": req.body.skuNum ? req.body.skuNum : fetchedOriginalProduct.skuNum,
-	    "taxable": (req.body.taxable != fetchedOriginalProduct.taxable)? req.body.taxable : fetchedOriginalProduct.taxable,
-	    "fullPrice": req.body.fullPrice ? req.body.fullPrice : fetchedOriginalProduct.fullPrice,
-	    "category": req.body.category ? req.body.category : fetchedOriginalProduct.category
-	}
+	    id: req.body.skuNum || oldProduct.id,
+	    name: req.body.name || oldProduct.name,
+	    price: req.body.price || oldProduct.price,
+	    skuNum: req.body.skuNum || oldProduct.skuNum,
+	    taxable: req.body.taxable ?? oldProduct.taxable,
+	    fullPrice: req.body.fullPrice || oldProduct.fullPrice,
+	    category: req.body.category || oldProduct.category
+	};
 
  	try {
 
@@ -454,28 +449,32 @@ async function updateProduct(req, res) {
  		readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
  		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
 
- 		// Update barcode image if SKU was updated, query being new id and fetchedOriginalProduct being the old id
- 		if (req.query.skuNum && req.query.skuNum != fetchedOriginalProduct.id) {
+        // Set id values to check if update is needed
+        const oldId = oldProduct.id;
+        const newId = updatedProduct.id;
 
-            const oldBarcodeImagePath = `${barcodeFolderDirectory}${fetchedProduct.id}.png`;
-            const newBarcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
+        // If the product id needs to be updated
+        if (newId !== oldId) {
+
+            const oldBarcodeImagePath = `${barcodeFolderDirectory}${oldId}.png`;
+            const newBarcodeImagePath = `${barcodeFolderDirectory}${newId}.png`;
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
             // Delete existing barcode image file
-            if (fs.existsSync(oldBarcodeImagePath)) {
-                await fs.promises.unlink(oldBarcodeImagePath);
+            if (fs.existsSync(oldBarcodePath)) {
+                await fs.promises.unlink(oldBarcodePath);
             }
 
             // Fetch new barcode image
-            const response = await fetch(`${barcodeApiUrl}${req.body.id}`);
+            const response = await fetch(`${barcodeApiUrl}${newId}`);
             if (!response.ok) throw new Error('Barcode API response was bad');
             const imageBuffer = await response.arrayBuffer();
             await fs.promises.writeFile(newBarcodeImagePath, Buffer.from(imageBuffer));
 
- 		}
+        }
 
         // Send status message
-        res.status(200).send(`Updated the following...\n${JSON.stringify(fetchedOriginalProduct, null, 2)}\nto...\n${JSON.stringify(updatedProduct, null, 2)}`);
+        res.status(200).send(`Updated the following...\n${JSON.stringify(oldProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
 
 	} catch (err) {
 		console.error("Failed to update product", err);
