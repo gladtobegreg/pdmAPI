@@ -68,7 +68,6 @@ async function getAllProducts(req, res) {
         // Await all product checks, sort database, and send response
         await Promise.all(promises);
         readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
-        // res.status(200).send(readProductsJson.products[userDataIndex]);
         res.status(200).json({
             "categories": readProductsJson.categories[userDataIndex],
             "products": readProductsJson.products[userDataIndex]
@@ -225,143 +224,6 @@ function getRandomProducts (req, res) {
 
 }
 
-/*
-// Request for random products given criteria in req.query
-function getRandomProducts_BACKUP (req, res) {
-
-    // Check for username in database and throw error if not found
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
-    if (!user) {
-        console.error(`User ${req.query.username} not found`);
-        return res.status(404).json({error: 'User not found'});
-    }
-
-    try {
-
-        // Set variables for requested parameters
-        const userDataIndex = user.productSetIndex;
-        var category = req.query.category.toLowerCase();
-        var total = parseFloat(req.query.total);
-
-        // TEST
-        console.log('--- /api/products.random called ---');
-        console.log('Username: ', req.query.username);
-        console.log('Total: ', total);
-        console.log('User Index: ', userDataIndex);
-
-        function getSingleRandomProduct(category, total) {
-
-            //let selectedProduct;
-            let possibleProducts = {};
-            let rollingSum = 0;
-
-            const categoryFilteredProducts =
-                (category == 'all') ?
-                readProductsJson.products[userDataIndex] :
-                readProductsJson.products[userDataIndex].filter(product => product.category.toLowerCase() === category.toLowerCase());
-
-            // TESTING
-            console.log(`Filtered ${categoryFilteredProducts.length} products for category "${category}"`);
-
-            // Sort the json items by price, high to low
-            // categoryFilteredProducts.sort((a, b) => a.fullPrice - b.fullPrice);
-            categoryFilteredProducts.sort((a, b) =>
-                parseFloat(a.fullPrice) - parseFloat(b.fullPrice)
-            );
-
-            // Iterate through product list and build dictionary of product:rollingSum for any valid products
-            for (const product of categoryFilteredProducts) {
-                let productFullPrice = parseFloat(product.fullPrice);
-                if (isNaN(productFullPrice)) continue;
-                if (productFullPrice <= total) {
-                    rollingSum += productFullPrice;
-                    possibleProducts[product.id] = rollingSum;
-                }
-                else break;
-            }
-
-            // Get a random number from the range of rollingSum
-            const randomSum = Math.floor(Math.random() * rollingSum);
-
-            // Find the product corresponding to the randomly selected sum
-            for (const productId in possibleProducts) {
-                if (randomSum <= possibleProducts[productId]) {
-                    
-                    let selectedProduct = categoryFilteredProducts.find(product => product.id == productId);
-                    return selectedProduct;
-                }
-            }
-
-            // No valid product is found, usually total is smaller than any product price
-            console.log(`No valid product was found in getSingleRandomProduct()\nrandomSum was ${randomSum}\ntotal was ${total}`);
-            return null;
-
-        } // End of getSingleRandomProduct() function
-
-        function getRandomProductList(category, total) {
-
-            // Set variables and product list
-            let selectedProduct;
-            let selectedProducts = [];
-            let minimumRemainder = 0.98;
-            let remainingTotal = total;
-
-            // Fill list of products while tracking remaining total
-            while (remainingTotal > minimumRemainder) {
-                selectedProduct = getSingleRandomProduct(category, remainingTotal);
-                if (!selectedProduct) break;
-                selectedProducts.push(selectedProduct);
-                remainingTotal -= parseFloat(selectedProduct.fullPrice);
-            }
-
-            // Return the list of products and the total price remainder for the list        
-            return { selectedProducts, remainingTotal };
-
-        } // End of getRandomProductList() function
-
-        // Make a first initial fetch of random products and report remainder value
-        const firstResponseObject = getRandomProductList(category, total);
-
-        // TEST
-        if (firstResponseObject) {
-            console.log("Sending response:", JSON.stringify(firstResponseObject, null, 2));
-            return res.status(200).json(firstResponseObject);
-        }
-
-        // Reroll randomizer 4 times to minizmize the remainder
-        for (let i = 0; (i < 4) && (firstResponseObject.remainingTotal > 0.15); i++) {
-
-            // If initial product list has low enough remainder, skip reroll
-            if (firstResponseObject.remainingTotal < 0.08) break;
-
-            else {
-                let secondResponseObject = getRandomProductList(category, total);
-                if (secondResponseObject.remainingTotal < firstResponseObject.remainingTotal) {
-                    // Better remainder rolled, replace original object
-                    Object.assign(firstResponseObject, secondResponseObject);
-                } 
-            }
-
-        } // End of for loop
-
-        // Report remainder in server console
-        console.log(`Final remainder: ${firstResponseObject.remainingTotal}\n`);
-        if (firstResponseObject.remainingTotal < 0.009)
-            console.log(`The remaining total was very little\nHere is the firstResponseObject.selectedProducts:
-                \n${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
-        //console.log(`Reported products: ${JSON.stringify(firstResponseObject.selectedProducts, null, 2)}`);
-
-        // Send response to api call
-        if (firstResponseObject) res.status(200).json(firstResponseObject);
-
-    } catch (error) {
-        console.error('Server error in /api/products/random:', error);
-        return res.status(500).json({ error: 'Internal Server Error'});
-    }
-
-}
-*/
-
 // New item to add to database, received in req.body
 async function createProduct(req, res) {
 
@@ -412,43 +274,43 @@ async function createProduct(req, res) {
 // Update existing item selected by req.query.id and data through req.body
 async function updateProduct(req, res) {
 
-	// Check for valid input data: username, productID
-	const username = req.query.username;
-	const originalId = req.query.id;
-	if (!username || !originalId) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
+    try {
 
-	// Check if a user exists with given username
-    const user = readProductsJson.users.find(user => user.username == username);
-    if (!user) return res.status(404).send(`User not found: ${username}`);
+        // Check for valid input data: username, productID
+        const username = req.query.username;
+        const originalId = req.query.id;
+        if (!username || !originalId) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
 
-	// Get user index for referencing respective data
-	const userDataIndex = user.productSetIndex;
+        // Check if a user exists with given username
+        const user = readProductsJson.users.find(user => user.username == username);
+        if (!user) return res.status(404).send(`User not found: ${username}`);
 
- 	// Check if original product exists, otherwise throw error
-    const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === originalId);
-    if (originalProductIndex === -1) return res.status(404).send(`Product with ID ${originalId} not found`);
+        // Get user index for referencing respective data
+        const userDataIndex = user.productSetIndex;
 
- 	// Get original product and figure the id that will be assigned to the new product
-    const originalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
-    const newId = req.body.skuNum || originalId;
+        // Check if original product exists, otherwise throw error
+        const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === originalId);
+        if (originalProductIndex === -1) return res.status(404).send(`Product with ID ${originalId} not found`);
 
-	// Define new product using given data if applicable
-	const updatedProduct = {
-	    id: newId,
-	    name: req.body.name || originalProduct.name,
-	    price: req.body.price || originalProduct.price,
-	    skuNum: req.body.skuNum || originalProduct.skuNum,
-	    taxable: req.body.taxable ?? originalProduct.taxable,
-	    fullPrice: req.body.fullPrice || originalProduct.fullPrice,
-	    category: req.body.category || originalProduct.category
-	};
+        // Get original product and figure the id that will be assigned to the new product
+        const originalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
+        const newId = req.body.skuNum || originalId;
 
- 	try {
+        // Define new product using given data if applicable
+        const updatedProduct = {
+            id: newId,
+            name: req.body.name || originalProduct.name,
+            price: req.body.price || originalProduct.price,
+            skuNum: req.body.skuNum || originalProduct.skuNum,
+            taxable: req.body.taxable ?? originalProduct.taxable,
+            fullPrice: req.body.fullPrice || originalProduct.fullPrice,
+            category: req.body.category || originalProduct.category
+        };
 
- 		// Update product in database, sort list of products
- 		readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
- 		readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
- 		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
+        // Update product in database, sort list of products
+        readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
+        readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+        fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
 
         // If the product id needs to be updated
         if (newId !== originalId) {
@@ -473,11 +335,10 @@ async function updateProduct(req, res) {
         // Send status message
         console.log("Sending success response");
         res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
-        return;
 
 	} catch (err) {
 		console.error("Failed to update product", err);
-		res.status(500).send("Internal server error");
+		return res.status(500).send("Internal server error while updating product");
 	}
 }
 
