@@ -471,11 +471,11 @@ async function updateProduct(req, res) {
         }
 
         // Send status message
-        return res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
+        res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
 
 	} catch (err) {
 		console.error("Failed to update product", err);
-		return res.status(500).send("Internal server error");
+		res.status(500).send("Internal server error");
 	}
 }
 
