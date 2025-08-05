@@ -461,8 +461,8 @@ async function updateProduct(req, res) {
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
             // Delete existing barcode image file
-            if (fs.existsSync(oldBarcodePath)) {
-                await fs.promises.unlink(oldBarcodePath);
+            if (fs.existsSync(oldBarcodeImagePath)) {
+                await fs.promises.unlink(oldBarcodeImagePath);
             }
 
             // Fetch new barcode image
