@@ -1,19 +1,19 @@
 const express = require('express');
-const app = express();
-app.use(express.json());
-const cors = require('cors'); 
-const corsOptions = {
-    origin:'*',
-    credentials:true,
-    optionSuccessStatus:200,
-}
-
+const cors = require('cors');
 const productController = require('./controllers/productController');
+
+const app = express();
 const PORT = 3000;
 
-app.listen(PORT, () => console.log(`Server started at port ${PORT}`)); 
-app.use(express.static('public')); 
+const corsOptions = {
+    origin: '*',
+    optionSuccessStatus: 200,
+};
+
+// Middleware
 app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.static('public'));
 
 // Serve /barcodes/image files at the /api/barcodes/ endpoint
 app.use('/api/barcodes', express.static('barcodes'));
@@ -32,3 +32,6 @@ app.delete('/api/products/deleteProduct', productController.deleteProduct); // I
 app.post('/api/categories/addCategory', productController.createCategory);
 app.patch('/api/categories/updateCategory', productController.updateCategory);
 app.delete('/api/categories/deleteCategory', productController.deleteCategory);
+
+// Start server
+app.listen(PORT, () => console.log(`Server started at port ${PORT}`));

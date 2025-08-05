@@ -471,7 +471,9 @@ async function updateProduct(req, res) {
         }
 
         // Send status message
+        console.log("Sending success response");
         res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
+        return;
 
 	} catch (err) {
 		console.error("Failed to update product", err);
