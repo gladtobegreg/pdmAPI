@@ -301,7 +301,7 @@ async function updateProduct(req, res) {
         name: req.body.name || originalProduct.name,
         price: req.body.price || originalProduct.price,
         skuNum: req.body.skuNum || originalProduct.skuNum,
-        taxable: req.body.taxable ?? originalProduct.taxable,
+        taxable: req.body.taxable || originalProduct.taxable,
         fullPrice: req.body.fullPrice || originalProduct.fullPrice,
         category: req.body.category || originalProduct.category
     }
