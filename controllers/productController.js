@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const database = './pdmDb.json';
 const barcodeFolderDirectory = './barcodes/';
 let readData = fs.readFileSync(database); 
@@ -274,72 +274,85 @@ async function createProduct(req, res) {
 // Update existing item selected by req.query.id and data through req.body
 async function updateProduct(req, res) {
 
+    // Collect the request data and validate
+    const username = req.query.username;
+    const originalId = req.query.id;
+    if (!username || !originalId) return res.status(400).send("Not valid username or originalId input data:");
+
+    // Check database for valid user and set respective data index
+    const user = readProductsJson.user.find(user => user.username == username);
+    if (!user) return res.status(404).send("User not found in database");
+    const userDataIndex = user.productSetIndex;
+
+    // Find the index of the product to update
+    const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == originalId);
+    if (originalProductIndex === -1) return res.status(404).send('Product id not found in database');
+
+    // Prepare the updated data including potential new product id
+    const originalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
+    let newId = originalId;
+    if (req.body.skuNum && req.body.skuNum != originalId) {
+        newId = req.body.skuNum;        
+    }
+    
+    // Construct the new product object
+    const updatedProduct = {
+        id: newId,
+        name: req.body.name || originalProduct.name,
+        price: req.body.price || originalProduct.price,
+        skuNum: req.body.skuNum || originalProduct.skuNum,
+        taxable: req.body.taxable ?? originalProduct.taxable,
+        fullPrice: req.body.fullPrice || originalProduct.fullPrice,
+        category: req.body.category || originalProduct.category
+    }
+
+    // Replace the product in the database and sort the list
+    readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
+    readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+
+    // Make all the async calls
     try {
 
-        // Check for valid input data: username, productID
-        const username = req.query.username;
-        const originalId = req.query.id;
-        if (!username || !originalId) return res.status(400).send(`Missing valid username [${req.query.username}], product ID [${req.query.id}]`);
-
-        // Check if a user exists with given username
-        const user = readProductsJson.users.find(user => user.username == username);
-        if (!user) return res.status(404).send(`User not found: ${username}`);
-
-        // Get user index for referencing respective data
-        const userDataIndex = user.productSetIndex;
-
-        // Check if original product exists, otherwise throw error
-        const originalProductIndex = readProductsJson.products[userDataIndex].findIndex(p => p.id === originalId);
-        if (originalProductIndex === -1) return res.status(404).send(`Product with ID ${originalId} not found`);
-
-        // Get original product and figure the id that will be assigned to the new product
-        const originalProduct = readProductsJson.products[userDataIndex][originalProductIndex];
-        const newId = req.body.skuNum || originalId;
-
-        // Define new product using given data if applicable
-        const updatedProduct = {
-            id: newId,
-            name: req.body.name || originalProduct.name,
-            price: req.body.price || originalProduct.price,
-            skuNum: req.body.skuNum || originalProduct.skuNum,
-            taxable: req.body.taxable ?? originalProduct.taxable,
-            fullPrice: req.body.fullPrice || originalProduct.fullPrice,
-            category: req.body.category || originalProduct.category
-        };
-
-        // Update product in database, sort list of products
-        readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
-        readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
-        fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
-
-        // If the product id needs to be updated
-        if (newId !== originalId) {
-
+        // Check for barcode update tasks
+        if (req.body.skuNum && req.body.skuNum != originalId) {
             const oldBarcodeImagePath = `${barcodeFolderDirectory}${originalId}.png`;
             const newBarcodeImagePath = `${barcodeFolderDirectory}${newId}.png`;
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
-
-            // Delete existing barcode image file
-            if (fs.existsSync(oldBarcodeImagePath)) {
+            
+            // Delete old barcode image
+            try {
+                await fs.promises.access(oldBarcodeImagePath);
                 await fs.promises.unlink(oldBarcodeImagePath);
+                console.log('Old barcode image deleted successfully');
+            } catch (error) {
+                console.error('Failed to delete barcode image: ', error);
             }
-
+            
             // Fetch new barcode image
-            const response = await fetch(`${barcodeApiUrl}${newId}`);
-            if (!response.ok) throw new Error('Barcode API response was bad');
-            const imageBuffer = await response.arrayBuffer();
-            await fs.promises.writeFile(newBarcodeImagePath, Buffer.from(imageBuffer));
-
+            try {
+                const response = await fetch(`${barcodeApiUrl}${newId}`);
+                if (!response.ok) throw new Error('Barcode API response was bad');
+                const imageBuffer = await response.arrayBuffer();
+                await fs.promises.writeFile(newBarcodeImagePath, Buffer.from(imageBuffer));
+            } catch (error) {
+                console.error('Failed to fetch new barcode image: ', error);
+            }
         }
 
+        // Save updated database to file
+        try {
+            await fs.promises.writeFile(database, JSON.stringify(readProductsJson, null, 2));
+        } catch (error) {
+            console.error('Writing database update failed: ', error);
+        }
+        
         // Send status message
-        console.log("Sending success response");
+        console.log('Sending success response');
         res.status(200).send(`Updated the following...\n${JSON.stringify(originalProduct, null, 2)}\nto:\n${JSON.stringify(updatedProduct, null, 2)}`);
-
-	} catch (err) {
-		console.error("Failed to update product", err);
-		return res.status(500).send("Internal server error while updating product");
-	}
+    
+    } catch (error) {
+        console.error('Failed to handle update and barcode function: ', error);
+    }
 }
 
 // Delete existing item and barcode selected by req.query
