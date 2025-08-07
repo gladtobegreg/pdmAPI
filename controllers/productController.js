@@ -280,7 +280,7 @@ async function updateProduct(req, res) {
     if (!username || !originalId) return res.status(400).send("Not valid username or originalId input data:");
 
     // Check database for valid user and set respective data index
-    const user = readProductsJson.user.find(user => user.username == username);
+    const user = readProductsJson.users.find(user => user.username == username);
     if (!user) return res.status(404).send("User not found in database");
     const userDataIndex = user.productSetIndex;
 
