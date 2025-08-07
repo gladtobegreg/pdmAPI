@@ -383,7 +383,7 @@ async function deleteProduct(req, res) {
     try {
 
         // Save updated database to file
-        await fs.promises.writeFile(database, JSON.stringify(productList, null, 2));
+        await fs.promises.writeFile(database, JSON.stringify(readProductsJson, null, 2));
 
         // Delete barcode image if file deleted successfully
         try {
