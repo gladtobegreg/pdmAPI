@@ -533,6 +533,10 @@ async function deleteCategory(req, res) {
 	}
 }
 
+function sanityCheck(req, res) {
+    res.status(200).send('pong');
+}
+
 module.exports = {
     getAccess,
     getAllProducts,
@@ -544,5 +548,6 @@ module.exports = {
     deleteProduct,
     createCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    sanityCheck
 };

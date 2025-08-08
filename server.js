@@ -3,7 +3,7 @@ const cors = require('cors');
 const productController = require('./controllers/productController');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 const corsOptions = {
     origin: '*',
@@ -33,6 +33,7 @@ app.delete('/api/products/deleteProduct', productController.deleteProduct); // I
 app.post('/api/categories/addCategory', productController.createCategory);
 app.patch('/api/categories/updateCategory', productController.updateCategory);
 app.delete('/api/categories/deleteCategory', productController.deleteCategory);
+app.get('/api/sanityCheck', productController.sanityCheck);
 
 // Start server
 app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
