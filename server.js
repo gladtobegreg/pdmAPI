@@ -39,6 +39,9 @@ app.post('/api/categories/addCategory', productController.createCategory);
 app.patch('/api/categories/updateCategory', productController.updateCategory);
 app.delete('/api/categories/deleteCategory', productController.deleteCategory);
 app.get('/api/sanityCheck', productController.sanityCheck);
+app.post('/api/sanityCheck', productController.sanityCheck);
+app.patch('/api/sanityCheck', productController.sanityCheck);
+app.delete('/api/sanityCheck', productController.sanityCheck);
 
 // Start server
 app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
