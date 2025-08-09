@@ -99,7 +99,11 @@ function getProductsByCategory (req, res) {
     const user = readProductsJson.users.find(user => user.username === req.query.username);
     const userDataIndex = user.productSetIndex;
 
-    var selectedProductsArray = readProductsJson.products[userDataIndex].filter((product) => product.category == req.query.category);
+    var selectedProductsArray = readProductsJson.products[userDataIndex].filter((product) =>
+        Array.isArray(product.category) &&
+        product.category.some(
+            (cat) => cat.toLowerCase() === searchCategory
+        ));
     res.status(200).send(selectedProductsArray); 
 }
 
@@ -241,6 +245,10 @@ async function createProduct(req, res) {
     const newProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == originalId);
     if (newProductIndex !== -1) return res.status(404).send('Product id already exists in database');
 
+    // TEST
+    console.log(`First test\nWe have the following data...`);
+    console.log(`username=${username}\nproductID=${productID}\nuser=${user}`);
+
     // Push product to database and sort the list
     readProductsJson.products[userDataIndex].push(req.body);
     readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
@@ -248,6 +256,10 @@ async function createProduct(req, res) {
     // Request barcode from api
     const barcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
     const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
+
+    // TEST
+    console.log(`Second test\nWe have the following data...`);
+    console.log(`barcodeImagePath=${barcodeImagePath}`);
 
     // Check to see if the file exists, otherwise generate new barcode image
     try {
@@ -261,6 +273,9 @@ async function createProduct(req, res) {
         console.log('New barcode image was generated');
     }
 
+    // TEST
+    console.log(`Third test\nA barcode file now exists...`);
+
     // Save updated database to file
     try {
         await fs.promises.writeFile(database, JSON.stringify(readProductsJson, null, 2));
@@ -268,9 +283,12 @@ async function createProduct(req, res) {
         console.error('Writing database update failed: ', error);
     }
 
+    // TEST
+    console.log(`Fourth test\nThe product data write was attempted`);
+
     // Send status message
     console.log('Sending success response');
-    res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
+    return res.status(200).send(`The following product has been added\n${JSON.stringify(req.body, null, 2)}`);
 }
 
 // Update existing item selected by req.query.id and data through req.body
