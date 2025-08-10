@@ -242,7 +242,7 @@ async function createProduct(req, res) {
     const userDataIndex = user.productSetIndex;
 
     // Check database for existing product
-    const newProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == originalId);
+    const newProductIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == productID);
     if (newProductIndex !== -1) return res.status(404).send('Product id already exists in database');
 
     // TEST
