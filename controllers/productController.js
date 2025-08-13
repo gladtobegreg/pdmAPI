@@ -59,7 +59,7 @@ async function getAllProducts(req, res) {
 
         // For each product check for existing barcode, else make api request
         const promises = readProductsJson.products[userDataIndex].map(async (product) => {
-            const barcodeImagePath = `${barcodeFolderDirectory}${product.id}.png`;
+            const barcodeImagePath = path.join(barcodeFolderDirectory, `${product.id}.png`);
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
             try {
                 await fs.promises.access(barcodeImagePath, fs.constants.F_OK);
