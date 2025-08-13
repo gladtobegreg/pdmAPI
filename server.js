@@ -1,13 +1,19 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// In CommonJS, __filename and __dirname are built-in — no need for fileURLToPath
+const __filename = __filename;
+const __dirname = __dirname;
 
 // Persistent paths
 const dataDir = path.join(__dirname, 'data');
-const barcodeFolderDirectory = path.join(dataDir, 'barcodes', '/');
+const barcodeFolderDirectory = path.join(dataDir, 'barcodes');
 const jsonDbPath = path.join(dataDir, 'pdmDb.json');
+
+module.exports = {
+  dataDir,
+  barcodeFolderDirectory,
+  jsonDbPath
+};
 
 // Use barcodeFolderDirectory when generating images
 // Use jsonDbPath when reading/writing the JSON database
