@@ -23,6 +23,6 @@ primary_region = 'ewr'
 
 [mounts]
   source="app_data"
-  destination="/data"
+  destination="app/data"
 
   
