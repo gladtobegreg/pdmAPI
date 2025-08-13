@@ -303,6 +303,9 @@ async function updateProduct(req, res) {
             return res.status(400).send("Not valid username or originalId input data:");
         }
 
+        // TEST console logging
+        console.log('The query data thus far has proven valid');
+
         // Check database for valid user and set respective data index
         const user = readProductsJson.users.find(user => user.username == username);
         if (!user) {
@@ -339,6 +342,9 @@ async function updateProduct(req, res) {
         // Replace the product in the database and sort the list
         readProductsJson.products[userDataIndex][originalProductIndex] = updatedProduct;
         readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
+
+        // TEST console log
+        console.log('All checks passed and new data has been inserted and sorted');
 
         // Check for barcode update tasks
         if (req.body?.skuNum && req.body.skuNum != originalId) {
