@@ -35,7 +35,8 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Serve /barcodes/image files at the /api/barcodes/ endpoint
-app.use('/api/barcodes', express.static('barcodes'));
+// app.use('/api/barcodes', express.static('barcodes'));
+app.use('/api/barcodes', express.static(barcodeFolderDirectory));
 
 //Define routes
 app.get('/api/products', productController.getAllProducts);
