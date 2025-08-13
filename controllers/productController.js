@@ -1,6 +1,7 @@
+const path = require('path');
+const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
+const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 const fs = require('fs');
-const database = './pdmDb.json';
-const barcodeFolderDirectory = './barcodes/';
 let readData = fs.readFileSync(database); 
 let readProductsJson = JSON.parse(readData);
 
