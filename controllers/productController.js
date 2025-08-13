@@ -42,6 +42,11 @@ function getAccess(req, res) {
 
 // Request entire database of products, sync product barcode images
 async function getAllProducts(req, res) {
+
+    // Ensure barcode folder exists
+    if (!fs.existsSync(barcodeFolderDirectory)) {
+        fs.mkdirSync(barcodeFolderDirectory, { recursive: true });
+    }
     
     const user = readProductsJson.users.find(user => user.username === req.query.username);
     const userDataIndex = user.productSetIndex;
