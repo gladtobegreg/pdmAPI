@@ -1,3 +1,17 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Persistent paths
+const dataDir = path.join(__dirname, 'data');
+const barcodeFolderDirectory = path.join(dataDir, 'barcodes', '/');
+const jsonDbPath = path.join(dataDir, 'pdmDb.json');
+
+// Use barcodeFolderDirectory when generating images
+// Use jsonDbPath when reading/writing the JSON database
+
 const express = require('express');
 const cors = require('cors');
 const productController = require('./controllers/productController');
