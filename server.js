@@ -1,9 +1,5 @@
 const path = require('path');
 
-// In CommonJS, __filename and __dirname are built-in — no need for fileURLToPath
-const __filename = __filename;
-const __dirname = __dirname;
-
 // Persistent paths
 const dataDir = path.join(__dirname, 'data');
 const barcodeFolderDirectory = path.join(dataDir, 'barcodes');
