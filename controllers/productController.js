@@ -28,12 +28,18 @@ if (!fs.existsSync(barcodeFolderDirectory)) {
 // Request permission to access the database
 function getAccess(req, res) {
 
+    // TEST
+    console.log("Users in DB:", readProductsJson.users);
+
     const { username, password } = req.body;
 
     try {
 
         // Check users data in json for user with requested username
         const user = readProductsJson.users.find(user => user.username === username);
+
+        // TEST
+        console.log("User found:", user);
 
         // Invalid username, user not found
         if (!user) {
@@ -46,6 +52,9 @@ function getAccess(req, res) {
             return res.status(401).json({ message: 'Invalid password' });
         }
 
+        // TEST
+        console.log(`Login successful for user: ${username}`);
+
         // Successful login
         return res.status(200).json({ message: 'Login successful', username: user.username });
 
@@ -54,8 +63,6 @@ function getAccess(req, res) {
         return res.status(500).json({ message: `Server error: ${err.message}` });
     }
 
-    const user = readProductsJson.users.find(user => user.username === username);
-    return res.status(200).json({ message: 'Login successful', username: user.username });
 }
 
 // Request entire database of products, sync product barcode images
