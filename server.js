@@ -19,7 +19,8 @@ const cors = require('cors');
 const productController = require('./controllers/productController');
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const hostname = "0.0.0.0";
+const port = process.env.port || 8080;
 
 const corsOptions = {
   origin: '*', // Replace with your frontend origin in production
@@ -35,7 +36,6 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Serve /barcodes/image files at the /api/barcodes/ endpoint
-// app.use('/api/barcodes', express.static('barcodes'));
 app.use('/api/barcodes', express.static(barcodeFolderDirectory));
 
 //Define routes
@@ -58,4 +58,4 @@ app.patch('/api/sanityCheck', productController.sanityCheck);
 app.delete('/api/sanityCheck', productController.sanityCheck);
 
 // Start server
-app.listen(PORT, () => console.log(`Server started at port ${PORT}`));
+app.listen(port, hostname, () => console.log(`Server started at http://${hostname}:${port}/`));
