@@ -4,17 +4,6 @@ const fs = require('fs');
 const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
 const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 
-// Initialize the JSON file if missing with default content
-if (!fs.existsSync(database)) {
-  const defaultData = {
-    users: [],
-    products: [],
-    categories: []
-  };
-  fs.writeFileSync(database, JSON.stringify(defaultData, null, 2));
-  console.log('Initialized new pdmDb.json database file');
-}
-
 let readData = fs.readFileSync(database); 
 let readProductsJson = JSON.parse(readData);
 
