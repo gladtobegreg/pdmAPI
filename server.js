@@ -5,6 +5,11 @@ const dataDir = path.join(__dirname, '..', 'data');
 const barcodeFolderDirectory = path.join(dataDir, 'barcodes');
 const jsonDbPath = path.join(dataDir, 'pdmDb.json');
 
+// Debug logs to confirm paths
+console.log("Data directory:", dataDir);
+console.log("Barcode folder directory:", barcodeFolderDirectory);
+console.log("JSON DB path:", jsonDbPath);
+
 module.exports = {
   dataDir,
   barcodeFolderDirectory,
