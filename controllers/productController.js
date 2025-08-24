@@ -28,8 +28,12 @@ if (!fs.existsSync(barcodeFolderDirectory)) {
 // Request permission to access the database
 function getAccess(req, res) {
 
-    // TEST
-    console.log("Users in DB:", readProductsJson.users);
+    if (!readProductsJson.users || readProductsJson.users.length === 0) {
+        console.log("! No users in database — probably a fresh initialization.");
+        return res.status(503).json({ 
+            message: "No users exist in the system yet. Please create an admin account." 
+        });
+    }
 
     const { username, password } = req.body;
 
