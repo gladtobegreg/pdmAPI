@@ -36,44 +36,26 @@ if (!fs.existsSync(barcodeFolderDirectory)) {
 
 // Check for an existing database file
 function initDatabase() {
-
-    // Ensure data directory exists
     const dataDir = path.dirname(database);
-    if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-    }
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-    // If database file doesn’t exist, create it
     if (!fs.existsSync(database)) {
-        const emptyDb = {
-            users: [],
-            categories: [],
-            products: []
-        };
+        const emptyDb = { users: [], categories: [], products: [] };
         fs.writeFileSync(database, JSON.stringify(emptyDb, null, 2));
-        console.log("Created new database file:", database);
         return emptyDb;
     }
 
-    // Otherwise, read the existing one
     try {
-        const data = fs.readFileSync(database);
-        const parsed = JSON.parse(data);
-
-        // Ensure all main arrays exist
+        const data = fs.readFileSync(database, "utf-8");
+        const parsed = JSON.parse(data || '{}');
         return {
-            users: parsed.users || [],
-            categories: parsed.categories || [],
-            products: parsed.products || []
+            users: Array.isArray(parsed.users) ? parsed.users : [],
+            categories: Array.isArray(parsed.categories) ? parsed.categories : [],
+            products: Array.isArray(parsed.products) ? parsed.products : []
         };
-    } // Or create a new one if reading failed
-    catch (err) {
-        console.error("Error reading database file, resetting:", err);
-        const emptyDb = {
-            users: [],
-            categories: [],
-            products: []
-        };
+    } catch (err) {
+        console.error("Error reading database, resetting:", err);
+        const emptyDb = { users: [], categories: [], products: [] };
         fs.writeFileSync(database, JSON.stringify(emptyDb, null, 2));
         return emptyDb;
     }
