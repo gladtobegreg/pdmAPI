@@ -2,7 +2,7 @@ const path = require('path');
 
 // Persistent paths
 const dataDir = path.join(__dirname, '..', 'data');
-const barcodeFolderDirectory = path.join(dataDir, 'barcodes');
+const barcodeFolderDirectory = path.join(dataDir, 'barcodes/');
 const jsonDbPath = path.join(dataDir, 'pdmDb.json');
 
 // Debug logs to confirm paths

@@ -6,6 +6,9 @@ const util = require('util');
 // Promisify scrypt for async/await
 const scrypt = util.promisify(crypto.scrypt);
 
+const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
+const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes/');
+
 // Hash a password function
 async function hashPassword(password) {
     const salt = crypto.randomBytes(16).toString('hex'); // unique salt
@@ -19,9 +22,6 @@ async function verifyPassword(password, storedHash) {
     const derivedKey = await scrypt(password, salt, 64);
     return key === derivedKey.toString('hex');
 }
-
-const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
-const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes/');
 
 // let readData = fs.readFileSync(database); 
 // let readProductsJson = JSON.parse(readData);
@@ -171,11 +171,6 @@ async function getAllProducts(req, res) {
         const promises = readProductsJson.products[userDataIndex].map(async (product) => {
             const barcodeImagePath = path.join(barcodeFolderDirectory, `${product.id}.png`);
             const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
-
-            // TEST
-            console.log("TEST FUNCTION PRINTING BARCODE FOLDER AND IMAGE PATH:");
-            console.log(barcodeFolderDirectory);
-            console.log(barcodeImagePath);
 
             try {
                 await fs.promises.access(barcodeImagePath, fs.constants.F_OK);
