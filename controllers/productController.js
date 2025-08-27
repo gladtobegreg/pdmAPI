@@ -1,11 +1,31 @@
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
+const util = require('util');
+
+// Promisify scrypt for async/await
+const scrypt = util.promisify(crypto.scrypt);
+
+// Hash a password function
+async function hashPassword(password) {
+    const salt = crypto.randomBytes(16).toString('hex'); // unique salt
+    const derivedKey = await scrypt(password, salt, 64); // 64-byte key
+    return `${salt}:${derivedKey.toString('hex')}`; // store salt + hash
+}
+
+// Verify a password function
+async function verifyPassword(password, storedHash) {
+    const [salt, key] = storedHash.split(':');
+    const derivedKey = await scrypt(password, salt, 64);
+    return key === derivedKey.toString('hex');
+}
 
 const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
 const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 
-let readData = fs.readFileSync(database); 
-let readProductsJson = JSON.parse(readData);
+// let readData = fs.readFileSync(database); 
+// let readProductsJson = JSON.parse(readData);
+let readProductsJson = initDatabase();
 
 // Ensure barcode folder exists
 if (!fs.existsSync(barcodeFolderDirectory)) {
@@ -14,8 +34,47 @@ if (!fs.existsSync(barcodeFolderDirectory)) {
 
 // Define function routes below //
 
+// Check for an existing database file
+function initDatabase() {
+
+    // Ensure data directory exists
+    const dataDir = path.dirname(database);
+    if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+    }
+
+    // If database file doesn’t exist, create it
+    if (!fs.existsSync(database)) {
+        const emptyDb = {
+            users: [],
+            categories: [],
+            products: []
+        };
+        fs.writeFileSync(database, JSON.stringify(emptyDb, null, 2));
+        console.log("Created new database file:", database);
+        return emptyDb;
+    }
+
+    // Otherwise, read the existing one
+    try {
+        const readData = fs.readFileSync(database);
+        return JSON.parse(readData);
+    }
+    // Or create a new one if reading failed
+    catch (err) {
+        console.error("Error reading database file, resetting:", err);
+        const emptyDb = {
+            users: [],
+            categories: [],
+            products: []
+        };
+        fs.writeFileSync(database, JSON.stringify(emptyDb, null, 2));
+        return emptyDb;
+    }
+}
+
 // Request permission to access the database
-function getAccess(req, res) {
+async function getAccess(req, res) {
 
     if (!readProductsJson.users || readProductsJson.users.length === 0) {
         console.log("! No users in database — probably a fresh initialization.");
@@ -30,30 +89,80 @@ function getAccess(req, res) {
 
         // Check users data in json for user with requested username
         const user = readProductsJson.users.find(user => user.username === username);
-
-        // TEST
-        console.log("User found:", user);
-
-        // Invalid username, user not found
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(401).json({ message: 'Invalid username or password' });
         }
 
-        // Invalid password
-        if (user.password !== password) {
-            // Password does not match
-            return res.status(401).json({ message: 'Invalid password' });
+        // Verify password
+        const passwordMatch = await verifyPassword(password, user.password);
+        if (!passwordMatch) {
+            return res.status(401).json({ error: "Invalid username or password" });
         }
 
-        // TEST
-        console.log(`Login successful for user: ${username}`);
-
-        // Successful login
-        return res.status(200).json({ message: 'Login successful', username: user.username });
+        res.status(200).json({ 
+            message: "Login successful", 
+            username: user.username,
+            productSetIndex: user.productSetIndex 
+        });
 
     } catch (err) {
         console.log(`We have the following error: ${err}`);
         return res.status(500).json({ message: `Server error: ${err.message}` });
+    }
+
+}
+
+async function createNewUser(req, res) {
+
+    const { username, password } = req.body;
+
+    // If no username was passed
+    if (!username || !password) {
+        return res.status(400).json({ error: "Username and password are required" });
+    }
+
+    try {
+
+        // Check if username already exists
+        const user = readProductsJson.user.find(user => user.username == username);
+        if (user) {
+            return res.status(400).json({ error: "User already exists" });
+        }
+
+        // New user index to match products and categories array index
+        const newUserIndex = readProductsJson.user.length;
+
+        // Hash password using scrypt
+        const hashedPassword = await hashPassword(password);
+
+        // Create new user objhect
+        const newUser = {
+            username,
+            password: hashedPassword,
+            productSetIndex: newUserIndex
+        }
+
+        // Push new user and empty sets
+        readProductsJson.users.push(newUser);
+        readProductsJson.categories.push([]);
+        readProductsJson.products.push([]);
+
+        // Write updated data to file with atomic replace
+        const tmpFile = `${database}.tmp`;
+        fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
+        fs.renameSync(tmpFile, database);
+
+        res.status(201).json({
+            message: "User created successfully",
+            user: {
+                username: newUser.username,
+                productSetIndex: newUser.productSetIndex
+            }
+        });
+    
+    } catch (err) {
+        console.error("Error creating user:", err);
+        res.status(500).json({ error: "Username passed successfully. Internal server error" });
     }
 
 }
@@ -482,9 +591,11 @@ async function createCategory(req, res) {
 		readProductsJson.categories[userDataIndex].push(category);
 		readProductsJson.categories[userDataIndex].sort();
 
-		// Submit to database, and send response
-		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
-		return res.status(200).send(`The following category has been added\n${JSON.stringify(req.query.category, null, 2)}`);
+		// Write updated data to file with atomic replace and send response
+        const tmpFile = `${database}.tmp`;
+        fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
+        fs.renameSync(tmpFile, database);
+        return res.status(200).send(`The following category has been added\n${JSON.stringify(req.query.category, null, 2)}`);
 
 	} catch (err) {
 		console.error(err);
@@ -527,10 +638,10 @@ async function updateCategory(req, res) {
 			product.category = product.category.map(cat => cat == category ? newCategory : cat);
 		}
 
-		// Save data changes to database file
-		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
-
-		// Send response
+		// Write updated data to file with atomic replace and send response
+        const tmpFile = `${database}.tmp`;
+        fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
+        fs.renameSync(tmpFile, database);
 		res.status(200).send(`Category rename from ${category} to ${newCategory}`);
 
 	} catch (err) {
@@ -575,10 +686,10 @@ async function deleteCategory(req, res) {
 
 		}
 
-		// Write data back to file
-		fs.writeFileSync(database, JSON.stringify(readProductsJson, null, 2));
-
-		// Send response
+		// Write updated data to file with atomic replace and send response
+        const tmpFile = `${database}.tmp`;
+        fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
+        fs.renameSync(tmpFile, database);
 		res.status(200).send(`Category deleted successfully: ${fetchedCategory}`);
 
 	} catch (err) {
@@ -603,5 +714,6 @@ module.exports = {
     createCategory,
     updateCategory,
     deleteCategory,
-    sanityCheck
+    sanityCheck,
+    createNewUser
 };
