@@ -57,10 +57,16 @@ function initDatabase() {
 
     // Otherwise, read the existing one
     try {
-        const readData = fs.readFileSync(database);
-        return JSON.parse(readData);
-    }
-    // Or create a new one if reading failed
+        const data = fs.readFileSync(database);
+        const parsed = JSON.parse(data);
+
+        // Ensure all main arrays exist
+        return {
+            users: parsed.users || [],
+            categories: parsed.categories || [],
+            products: parsed.products || []
+        };
+    } // Or create a new one if reading failed
     catch (err) {
         console.error("Error reading database file, resetting:", err);
         const emptyDb = {
