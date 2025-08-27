@@ -124,7 +124,7 @@ async function createNewUser(req, res) {
     try {
 
         // Check if username already exists
-        const user = readProductsJson.user.find(user => user.username == username);
+        const user = readProductsJson.users.find(user => user.username === username);
         if (user) {
             return res.status(400).json({ error: "User already exists" });
         }
