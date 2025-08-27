@@ -60,7 +60,8 @@ app.delete('/api/categories/deleteCategory', productController.deleteCategory);
 app.post('/api/newUser', productController.createNewUser);
 
 app.get('/test-barcode', (req, res) => {
-  const filePath = path.join(barcodeFolderDirectory, '123123432432.png');
+  const filePath = path.join(barcodeFolderDirectory, '123123123123.png');
+  console.log("The used file path was...", filePath);
   res.sendFile(filePath, err => {
     if (err) {
       console.error("Error sending file:", err);
