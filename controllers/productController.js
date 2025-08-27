@@ -94,58 +94,60 @@ async function getAccess(req, res) {
 }
 
 async function createNewUser(req, res) {
-
     const { username, password } = req.body;
 
-    // If no username was passed
     if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
     }
 
     try {
+        // Initialize structure if DB file is empty/missing
+        if (!readProductsJson || typeof readProductsJson !== "object") {
+            readProductsJson = { users: [], categories: [], products: [] };
+        }
 
-        // Check if username already exists
-        const user = readProductsJson.users.find(user => user.username === username);
-        if (user) {
+        // Ensure all arrays exist
+        readProductsJson.users = readProductsJson.users || [];
+        readProductsJson.categories = readProductsJson.categories || [];
+        readProductsJson.products = readProductsJson.products || [];
+
+        // Check for existing username
+        const existingUser = readProductsJson.users.find(u => u.username === username);
+        if (existingUser) {
             return res.status(400).json({ error: "User already exists" });
         }
 
-        // New user index to match products and categories array index
-        const newUserIndex = readProductsJson.user.length;
+        const newUserIndex = readProductsJson.users.length;
 
-        // Hash password using scrypt
+        // Hash password
         const hashedPassword = await hashPassword(password);
 
-        // Create new user objhect
+        // Create user
         const newUser = {
             username,
             password: hashedPassword,
             productSetIndex: newUserIndex
-        }
+        };
 
-        // Push new user and empty sets
+        // Push user and placeholders
         readProductsJson.users.push(newUser);
         readProductsJson.categories.push([]);
         readProductsJson.products.push([]);
 
-        // Write updated data to file with atomic replace
+        // Write safely to file
         const tmpFile = `${database}.tmp`;
         fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
         fs.renameSync(tmpFile, database);
 
         res.status(201).json({
             message: "User created successfully",
-            user: {
-                username: newUser.username,
-                productSetIndex: newUser.productSetIndex
-            }
+            user: { username: newUser.username, productSetIndex: newUser.productSetIndex }
         });
-    
+
     } catch (err) {
         console.error("Error creating user:", err);
-        res.status(500).json({ error: "Username passed successfully. Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
-
 }
 
 // Request entire database of products, sync product barcode images
