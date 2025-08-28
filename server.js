@@ -1,7 +1,7 @@
 const path = require('path');
 
 // Persistent paths
-const dataDir = path.join(__dirname, '..', 'data');
+const dataDir = path.join(__dirname, 'data');
 const barcodeFolderDirectory = path.join(dataDir, 'barcodes');
 const jsonDbPath = path.join(dataDir, 'pdmDb.json');
 
@@ -58,17 +58,6 @@ app.patch('/api/categories/updateCategory', productController.updateCategory);
 app.delete('/api/categories/deleteCategory', productController.deleteCategory);
 
 app.post('/api/newUser', productController.createNewUser);
-
-app.get('/test-barcode', (req, res) => {
-  const filePath = path.join(barcodeFolderDirectory, '123123123123.png');
-  console.log("The used file path was...", filePath);
-  res.sendFile(filePath, err => {
-    if (err) {
-      console.error("Error sending file:", err);
-      res.status(404).send("File not found");
-    }
-  });
-});
 
 // Start server
 app.listen(port, hostname, () => console.log(`Server started at http://${hostname}:${port}/`));

@@ -7,7 +7,7 @@ const util = require('util');
 const scrypt = util.promisify(crypto.scrypt);
 
 const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
-const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes/');
+const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 
 // Hash a password function
 async function hashPassword(password) {
