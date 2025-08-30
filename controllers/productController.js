@@ -630,7 +630,7 @@ async function deleteCategory(req, res) {
 	// Check for valid input data: username, category, newCategory
 	const username = req.query.username;
 	const category = req.query.category;
-	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}], category [${req.query.category}], or newCateogry [${newCategory}] data`);
+	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}] or category [${req.query.category}]`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
@@ -650,18 +650,16 @@ async function deleteCategory(req, res) {
 
 		// Iterate through each product in database
 		for (const product of readProductsJson.products[userDataIndex]) {
-
 			// Splice the specified category out of each list of categories
 			const spliceIndex = product.category.findIndex((category) => category == req.query.category);
 			if (spliceIndex != -1) product.category.splice(spliceIndex, 1);
-
 		}
 
 		// Write updated data to file with atomic replace and send response
         const tmpFile = `${database}.tmp`;
         fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
         fs.renameSync(tmpFile, database);
-		res.status(200).send(`Category deleted successfully: ${fetchedCategory}`);
+		res.status(200).send(`Category deleted successfully: ${category}`);
 
 	} catch (err) {
 		console.error("Error removing category:", err);
