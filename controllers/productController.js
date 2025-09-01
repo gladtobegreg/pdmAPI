@@ -9,28 +9,13 @@ const scrypt = util.promisify(crypto.scrypt);
 const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
 const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 
-// Hash a password function
-async function hashPassword(password) {
-    const salt = crypto.randomBytes(16).toString('hex'); // unique salt
-    const derivedKey = await scrypt(password, salt, 64); // 64-byte key
-    return `${salt}:${derivedKey.toString('hex')}`; // store salt + hash
-}
-
-// Verify a password function
-async function verifyPassword(password, storedHash) {
-    const [salt, key] = storedHash.split(':');
-    const derivedKey = await scrypt(password, salt, 64);
-    return key === derivedKey.toString('hex');
-}
-
-// let readData = fs.readFileSync(database); 
-// let readProductsJson = JSON.parse(readData);
-let readProductsJson = initDatabase();
-
 // Ensure barcode folder exists
 if (!fs.existsSync(barcodeFolderDirectory)) {
   fs.mkdirSync(barcodeFolderDirectory, { recursive: true });
 }
+
+// Run database checker function
+let readProductsJson = initDatabase();
 
 // Define function routes below //
 
@@ -59,6 +44,20 @@ function initDatabase() {
         fs.writeFileSync(database, JSON.stringify(emptyDb, null, 2));
         return emptyDb;
     }
+}
+
+// Hash a password function
+async function hashPassword(password) {
+    const salt = crypto.randomBytes(16).toString('hex'); // unique salt
+    const derivedKey = await scrypt(password, salt, 64); // 64-byte key
+    return `${salt}:${derivedKey.toString('hex')}`; // store salt + hash
+}
+
+// Verify a password function
+async function verifyPassword(password, storedHash) {
+    const [salt, key] = storedHash.split(':');
+    const derivedKey = await scrypt(password, salt, 64);
+    return key === derivedKey.toString('hex');
 }
 
 // Request permission to access the database
@@ -238,7 +237,7 @@ function getRandomProducts (req, res) {
 
         // Set variables for requested parameters
         const userDataIndex = user.productSetIndex;
-        const category = req.query.category.toLowerCase();
+        const category = (req.query.category || '').toLowerCase();
         const total = parseFloat(req.query.total);
 
         // API server print to console check for data
@@ -256,7 +255,7 @@ function getRandomProducts (req, res) {
                 let rollingSum = 0;
 
                 // Get valid potential products based on passed category value
-                const categoryFilteredProducts = (category == 'all') ?
+                const categoryFilteredProducts = (category === 'all') ?
                     readProductsJson.products[userDataIndex] :
                     readProductsJson.products[userDataIndex].filter(product =>
                         Array.isArray(product.category) && product.category.includes(category)
