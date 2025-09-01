@@ -237,7 +237,7 @@ function getRandomProducts (req, res) {
 
         // Set variables for requested parameters
         const userDataIndex = user.productSetIndex;
-        const category = (req.query.category || '').toLowerCase();
+        const category = (req.query.category || '');
         const total = parseFloat(req.query.total);
 
         // API server print to console check for data
