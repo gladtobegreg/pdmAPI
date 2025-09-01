@@ -244,6 +244,7 @@ function getRandomProducts (req, res) {
         console.log('--- /api/products.random called ---');
         console.log('Username: ', req.query.username);
         console.log('Total: ', total);
+        console.log('Category: ', category);
         console.log('User Index: ', userDataIndex);
 
         function getRandomProductList (category, total) {
@@ -263,7 +264,7 @@ function getRandomProducts (req, res) {
 
                 // Sort products by price, high to low
                 categoryFilteredProducts.sort((a, b) =>
-                    parseFloat(a.fullPrice) - parseFloat(b.fullPrice)
+                    parseFloat(b.fullPrice) - parseFloat(a.fullPrice)
                 );
 
                 // Build dictionary of {product: rollingSum} for any valid products
