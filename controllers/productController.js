@@ -9,11 +9,6 @@ const scrypt = util.promisify(crypto.scrypt);
 const database = path.join(__dirname, '../data/pdmDb.json'); // adjust the path depending on your folder structure
 const barcodeFolderDirectory = path.join(__dirname, '../data/barcodes');
 
-// Ensure barcode folder exists
-if (!fs.existsSync(barcodeFolderDirectory)) {
-  fs.mkdirSync(barcodeFolderDirectory, { recursive: true });
-}
-
 // Run database checker function
 let readProductsJson = initDatabase();
 
@@ -384,7 +379,7 @@ async function createProduct(req, res) {
     readProductsJson.products[userDataIndex].sort((a, b) => b.fullPrice - a.fullPrice);
 
     // Request barcode from api
-    const barcodeImagePath = `${barcodeFolderDirectory}${req.body.id}.png`;
+    const barcodeImagePath = path.join(barcodeFolderDirectory, `${req.body.id}.png`);
     const barcodeApiUrl = `https://barcodeapi.org/api/code128/`;
 
     // TEST
@@ -511,7 +506,7 @@ async function deleteProduct(req, res) {
     const productIndex = readProductsJson.products[userDataIndex].findIndex(product => product.id == productID);
     if (productIndex === -1) return res.status(404).send('Product id not found in database');
 
-    const oldBarcodeImagePath = `${barcodeFolderDirectory}${productID}.png`;
+    const oldBarcodeImagePath = path.join(barcodeFolderDirectory, `${productID}.png`);
 
     // Splice the specified product out of the database list
     readProductsJson.products[userDataIndex].splice(productIndex, 1);
