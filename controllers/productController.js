@@ -59,6 +59,7 @@ async function verifyPassword(password, storedHash) {
 async function getAccess(req, res) {
 
     const { username, password } = req.body;
+    username = decodeURIComponent(username);
 
     try {
 
@@ -93,6 +94,8 @@ async function createNewUser(req, res) {
     if (!username || !password) {
         return res.status(400).json({ error: "Username and password are required" });
     }
+
+    username = decodeURIComponent(username);
 
     try {
         // Initialize structure if DB file is empty/missing
@@ -151,8 +154,10 @@ async function getAllProducts(req, res) {
     if (!fs.existsSync(barcodeFolderDirectory)) {
         fs.mkdirSync(barcodeFolderDirectory, { recursive: true });
     }
+
+    let username = decodeURIComponent(req.query.username);
     
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
+    const user = readProductsJson.users.find(user => user.username === username);
     const userDataIndex = user.productSetIndex;
 
     try {
@@ -194,10 +199,13 @@ async function getAllProducts(req, res) {
 // Request for specific item from req.query
 function getProductById (req, res) {
 
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
+    let username = decodeURIComponent(req.query.username);
+    let productID = decodeURIComponent(req.query.id);
+
+    const user = readProductsJson.users.find(user => user.username === username);
     const userDataIndex = user.productSetIndex;
 
-    var selectedItem = readProductsJson.products[userDataIndex].find(product => product.id == req.query.id);
+    var selectedItem = readProductsJson.products[userDataIndex].find(product => product.id == productID);
     if (selectedItem) {
         res.status(200).send(selectedItem);
     }
@@ -207,7 +215,9 @@ function getProductById (req, res) {
 // Request for all products of specific category from req.query
 function getProductsByCategory (req, res) {
 
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
+    let username = decodeURIComponent(req.query.username);
+
+    const user = readProductsJson.users.find(user => user.username === username);
     const userDataIndex = user.productSetIndex;
 
     var selectedProductsArray = readProductsJson.products[userDataIndex].filter((product) =>
@@ -221,10 +231,13 @@ function getProductsByCategory (req, res) {
 // Request for random products given criteria in req.query
 function getRandomProducts (req, res) {
 
+    let username = decodeURIComponent(req.query.username);
+    let categoryReq = decodeURIComponent(req.query.category)
+
     // Check for username in database and throw error if not found
-    const user = readProductsJson.users.find(user => user.username === req.query.username);
+    const user = readProductsJson.users.find(user => user.username === username);
     if (!user) {
-        console.error(`User ${req.query.username} not found`);
+        console.error(`User ${username} not found`);
         return res.status(404).json({error: 'User not found'});
     }
 
@@ -232,12 +245,12 @@ function getRandomProducts (req, res) {
 
         // Set variables for requested parameters
         const userDataIndex = user.productSetIndex;
-        const category = (req.query.category || '');
+        const category = (categoryReq || '');
         const total = parseFloat(req.query.total);
 
         // API server print to console check for data
         console.log('--- /api/products.random called ---');
-        console.log('Username: ', req.query.username);
+        console.log('Username: ', username);
         console.log('Total: ', total);
         console.log('Category: ', category);
         console.log('User Index: ', userDataIndex);
@@ -344,8 +357,8 @@ function getRandomProducts (req, res) {
 async function createProduct(req, res) {
 
 	// Collect the request data and validate
-	const username = req.query.username;
-	const productID = req.query.id;
+	let username = decodeURIComponent(req.query.username);
+	const productID = decodeURIComponent(req.query.id);
 	if (!username || !productID) return res.status(400).send("Not valid username or originalId input data:");
 
     // Check database for valid user and set respective data index
@@ -422,7 +435,7 @@ async function updateProduct(req, res) {
     try{
 
         // Validate query data
-        const username = req.query.username;
+        let username = decodeURIComponent(req.query.username);
         const originalId = req.query.id;
         if (!username || !originalId) {
             return res.status(400).send("Not valid username or original product id from input data:");
@@ -493,7 +506,7 @@ async function updateProduct(req, res) {
 async function deleteProduct(req, res) {
 
 	// Check for valid input data: username, productID
-	const username = req.query.username;
+	let username = decodeURIComponent(req.query.username);
 	const productID = req.query.id;
 	if (!username || !productID) return res.status(400).send("Not valid username or originalId input data:");
 
@@ -539,13 +552,13 @@ async function deleteProduct(req, res) {
 async function createCategory(req, res) {
 
 	// Check for valid input data: username, category
-	const username = req.query.username;
-	const category = req.query.category;
-	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}] or category [${req.query.category}] data`);
+	let username = decodeURIComponent(req.query.username);
+	const category = decodeURIComponent(req.query.category);
+	if (!username || !category) return res.status(400).send(`Missing valid username [${username}] or category [${category}] data`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
-	if (!user) throw new Error(`User not found: ${req.query.username}`);
+	if (!user) throw new Error(`User not found: ${username}`);
 
     // Get user index for referencing respective data
     const userDataIndex = user.productSetIndex;
@@ -566,7 +579,7 @@ async function createCategory(req, res) {
         const tmpFile = `${database}.tmp`;
         fs.writeFileSync(tmpFile, JSON.stringify(readProductsJson, null, 2));
         fs.renameSync(tmpFile, database);
-        return res.status(200).send(`The following category has been added\n${JSON.stringify(req.query.category, null, 2)}`);
+        return res.status(200).send(`The following category has been added\n${JSON.stringify(category, null, 2)}`);
 
 	} catch (err) {
 		console.error(err);
@@ -578,14 +591,14 @@ async function createCategory(req, res) {
 async function updateCategory(req, res) {
 
 	// Check for valid input data: username, category, newCategory
-	const username = req.query.username;
-	const category = req.query.category;
-	const newCategory = req.body.category;
-	if (!username || !category || !newCategory) return res.status(400).send(`Missing valid username [${req.query.username}], category [${req.query.category}], or newCateogry [${newCategory}] data`);
+	let username = decodeURIComponent(req.query.username);
+	const category = decodeURIComponent(req.query.category);
+	const newCategory = decodeURIComponent(req.body.category);
+	if (!username || !category || !newCategory) return res.status(400).send(`Missing valid username [${username}], category [${category}], or newCateogry [${newCategory}] data`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
-	if (!user) throw new Error(`User not found: ${req.query.username}`);
+	if (!user) throw new Error(`User not found: ${username}`);
 
 	// Get user index for referencing and get list of categories
 	const userDataIndex = user.productSetIndex;
@@ -623,13 +636,13 @@ async function updateCategory(req, res) {
 async function deleteCategory(req, res) {
 
 	// Check for valid input data: username, category, newCategory
-	const username = req.query.username;
-	const category = req.query.category;
-	if (!username || !category) return res.status(400).send(`Missing valid username [${req.query.username}] or category [${req.query.category}]`);
+	let username = decodeURIComponent(req.query.username);
+	const category = decodeURIComponent(req.query.category);
+	if (!username || !category) return res.status(400).send(`Missing valid username [${username}] or category [${category}]`);
 
 	// Check if a user exists with given username
 	const user = readProductsJson.users.find(user => user.username == username);
-	if (!user) throw new Error(`User not found: ${req.query.username}`);
+	if (!user) throw new Error(`User not found: ${username}`);
 
 	// Get user index for referencing respective data
 	const userDataIndex = user.productSetIndex;
@@ -646,7 +659,7 @@ async function deleteCategory(req, res) {
 		// Iterate through each product in database
 		for (const product of readProductsJson.products[userDataIndex]) {
 			// Splice the specified category out of each list of categories
-			const spliceIndex = product.category.findIndex((category) => category == req.query.category);
+			const spliceIndex = product.category.findIndex((category) => category == decodeURIComponent(req.query.category));
 			if (spliceIndex != -1) product.category.splice(spliceIndex, 1);
 		}
 
