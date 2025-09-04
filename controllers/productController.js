@@ -711,7 +711,7 @@ function getUserProducts(req, res) {
     }
 }
 
-function postUserProducts(req, res) {
+async function postUserProducts(req, res) {
 
 	// Check for valid input data: username
 	let username = decodeURIComponent(req.query.username);
@@ -723,16 +723,21 @@ function postUserProducts(req, res) {
 
 	// Get user index for referencing and get list of categories
 	const userDataIndex = user.productSetIndex;
-    const fileData = JSON.parse(req.body.toString());
 
     try {
 
+        // Validate request data body
+        const fileData = req.body;
+        if (!fileData.products || !fileData.categories) {
+            return res.status(400).send("Invalid file format: missing products or categories");
+        }
+
         // Replace user's data
-        readProductsJson.products[index] = fileData.products || [];
-        readProductsJson.categories[index] = fileData.categories || []; 
+        readProductsJson.products[userDataIndex] = fileData.products;
+        readProductsJson.categories[userDataIndex] = fileData.categories;
 
         // Write new data to database file
-        fs.writeFile(database, JSON.stringify(readProductsJson, null, 2));
+        await fs.promises.writeFile(database, JSON.stringify(readProductsJson, null, 2));
         res.status(200).send("Import successful");
 
     } catch (err) {
