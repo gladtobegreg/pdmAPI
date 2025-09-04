@@ -739,7 +739,7 @@ async function postUserProducts(req, res) {
         // Write new data to database file
         await fs.promises.writeFile(database, JSON.stringify(readProductsJson, null, 2));
         res.status(200).send("Import successful");
-
+        
     } catch (err) {
         console.error("Import error:", err);
         res.status(400).send("Invalid JSON file");
