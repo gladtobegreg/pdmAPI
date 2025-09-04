@@ -58,7 +58,7 @@ async function verifyPassword(password, storedHash) {
 // Request permission to access the database
 async function getAccess(req, res) {
 
-    const { username, password } = req.body;
+    let { username, password } = req.body;
     username = decodeURIComponent(username);
 
     try {
