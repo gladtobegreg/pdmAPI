@@ -37,7 +37,7 @@ const corsOptions = {
 // Middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(express.static('public'));
 
 // Serve /barcodes/image files at the /api/barcodes/ endpoint
@@ -52,10 +52,12 @@ app.post('/api/login', productController.getAccess); // Includes data sent as ob
 app.post('/api/products/addProduct', productController.createProduct); // Includes data sent as object
 app.patch('/api/products/updateProduct', productController.updateProduct); // Includes data sent as object
 app.delete('/api/products/deleteProduct', productController.deleteProduct); // Includes data sent as query
-
 app.post('/api/categories/addCategory', productController.createCategory);
 app.patch('/api/categories/updateCategory', productController.updateCategory);
 app.delete('/api/categories/deleteCategory', productController.deleteCategory);
+
+app.get('/api/products/export', productController.getUserProducts);
+app.post('/api/products/import', productController.postUserProducts);
 
 app.post('/api/newUser', productController.createNewUser);
 

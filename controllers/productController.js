@@ -679,6 +679,69 @@ function sanityCheck(req, res) {
     res.status(200).send('pong');
 }
 
+function getUserProducts(req, res) {
+
+	// Check for valid input data: username
+	let username = decodeURIComponent(req.query.username);
+	if (!username) return res.status(400).send(`Missing valid username [${username}]`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${username}`);
+
+	// Get user index for referencing and get list of categories
+	const userDataIndex = user.productSetIndex;
+
+    // Create variable for export data
+    const exportData = {
+        categories: readProductsJson.categories[userDataIndex],
+        products: readProductsJson.products[userDataIndex]
+    };
+
+    const fileName = `databaseBackup_${username}.json`;
+
+    try {
+        // Create response object
+        res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+        res.setHeader("Content-Type", "application/json");
+        res.send(JSON.stringify(exportData, null, 2));
+    } catch (err) {
+        console.error("Export error:", err);
+        res.status(500).json({ error: "Export failed" });
+    }
+}
+
+function postUserProducts(req, res) {
+
+	// Check for valid input data: username
+	let username = decodeURIComponent(req.query.username);
+	if (!username) return res.status(400).send(`Missing valid username [${username}]`);
+
+	// Check if a user exists with given username
+	const user = readProductsJson.users.find(user => user.username == username);
+	if (!user) throw new Error(`User not found: ${username}`);
+
+	// Get user index for referencing and get list of categories
+	const userDataIndex = user.productSetIndex;
+    const fileData = JSON.parse(req.body.toString());
+
+    try {
+
+        // Replace user's data
+        readProductsJson.products[index] = fileData.products || [];
+        readProductsJson.categories[index] = fileData.categories || []; 
+
+        // Write new data to database file
+        fs.writeFile(database, JSON.stringify(readProductsJson, null, 2));
+        res.status(200).send("Import successful");
+
+    } catch (err) {
+        console.error("Import error:", err);
+        res.status(400).send("Invalid JSON file");
+    }
+
+}
+
 module.exports = {
     getAccess,
     getAllProducts,
@@ -692,5 +755,7 @@ module.exports = {
     updateCategory,
     deleteCategory,
     sanityCheck,
-    createNewUser
+    createNewUser,
+    getUserProducts,
+    postUserProducts
 };
